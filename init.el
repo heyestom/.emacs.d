@@ -95,6 +95,10 @@
   :init
   (setq projectile-project-search-path '("~/Projects/")))
 
+(use-package counsel-projectile
+  :after projectile
+  :config (counsel-projectile-mode))
+
 ;; org-mode
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
