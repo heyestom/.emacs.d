@@ -98,6 +98,10 @@
   :after projectile
   :config (counsel-projectile-mode))
 
+;; magit
+(use-package magit
+  :commands magit-status)
+
 ;; org-mode
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
