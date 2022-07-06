@@ -17,7 +17,8 @@
 
 
 ;; theme 
-(load-theme 'modus-vivendi t)
+(load-theme 'tango-dark t)
+
 
 ;; Initialize package sources and ensure use-package
 (require 'package)
@@ -34,6 +35,14 @@
 
 (require 'use-package)
 (setq use-package-always-ensure t)
+
+
+
+;; PATH config
+
+(use-package exec-path-from-shell
+   :config (exec-path-from-shell-initialize))
+
 
 
 ;; Ivy - completion - via counsel
@@ -106,7 +115,7 @@
 (use-package flycheck
   :init (global-flycheck-mode))
 
-;;;; tide - typescript ide for emacs 
+;; tide - typescript ide for emacs 
 (use-package company)
 (use-package tide)
 (use-package web-mode)
@@ -154,7 +163,63 @@
 (flycheck-add-mode 'javascript-eslint 'web-mode)
 (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
 
-;;;; 
+;; clojure mode (s)
+
+(use-package rainbow-delimiters)
+(use-package smartparens)
+(use-package idle-highlight-mode) 
+(use-package flycheck-clojure)
+(use-package flycheck-clj-kondo)
+
+(use-package flycheck-pos-tip
+  :after flycheck)
+
+(eval-after-load 'flycheck
+  '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+
+
+(use-package flycheck-clojure
+  :defer t
+  :commands (flycheck-clojure-setup)               ;; autoload
+  :config
+  (eval-after-load 'flycheck
+    '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+  (add-hook 'after-init-hook #'global-flycheck-mode))
+
+(use-package clojure-mode
+  :config
+  (require 'flycheck-clj-kondo)
+  :mode (("\\.clj\\'" . clojure-mode)
+         ("\\.edn\\'" . clojure-mode))
+  :init
+  (add-hook 'clojure-mode-hook #'subword-mode)           
+  (add-hook 'clojure-mode-hook #'smartparens-mode)       
+  (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'clojure-mode-hook #'eldoc-mode)             
+  (add-hook 'clojure-mode-hook #'idle-highlight-mode))
+
+(use-package clj-refactor
+  :defer t
+  :ensure t
+  :diminish clj-refactor-mode
+  :config (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+
+(use-package cider
+  :ensure t
+  :defer t
+  :init (add-hook 'cider-mode-hook #'clj-refactor-mode)
+  :diminish subword-mode
+  :config
+  (setq nrepl-log-messages t                  
+        cider-repl-use-clojure-font-lock t    
+        cider-prompt-save-file-on-load 'always-save
+        cider-font-lock-dynamically '(macro core function var)
+        nrepl-hide-special-buffers t            
+        cider-overlays-use-font-lock t)
+  (flycheck-clojure-setup)
+  (cider-repl-toggle-pretty-printing))
+
 
 ;; org-mode
 (global-set-key (kbd "C-c l") #'org-store-link)
@@ -201,7 +266,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(web-mode company tide flycheck org-modern counsel-projectile magit projectile which-key marginalia counsel use-package)))
+   '(flycheck-clojure exec-path-from-shell idle-highlight-mode clj-refactor clojure-mode idle-highlight rainbow-delimiters smartparens smart-parens rainbow-delimiters-mode web-mode company tide flycheck org-modern counsel-projectile magit projectile which-key marginalia counsel use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
