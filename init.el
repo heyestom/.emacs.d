@@ -11,9 +11,9 @@
 (hl-line-mode t)
 (set-fringe-mode 10)
 
-;; line numbers 
+;; line numbers
 (global-display-line-numbers-mode t)
-(column-number-mode 1)    
+(column-number-mode 1)
 
 
 ;; theme 
@@ -70,7 +70,6 @@
 
   ;; The :init configuration is always executed (Not lazy!)
   :init
-
   ;; Must be in the :init section of use-package such that the mode gets
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
