@@ -16,10 +16,6 @@
 (column-number-mode 1)
 
 
-;; theme 
-(load-theme 'tango-dark t)
-
-
 ;; Initialize package sources and ensure use-package
 (require 'package)
 
@@ -37,12 +33,14 @@
 (setq use-package-always-ensure t)
 
 
+;; theme
+(use-package monokai-theme)
+(load-theme 'monokai t)
 
 ;; PATH config
 
 (use-package exec-path-from-shell
    :config (exec-path-from-shell-initialize))
-
 
 
 ;; Ivy - completion - via counsel
@@ -266,7 +264,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(flycheck-clojure exec-path-from-shell idle-highlight-mode clj-refactor clojure-mode idle-highlight rainbow-delimiters smartparens smart-parens rainbow-delimiters-mode web-mode company tide flycheck org-modern counsel-projectile magit projectile which-key marginalia counsel use-package)))
+   '(monokai-theme flycheck-clojure exec-path-from-shell idle-highlight-mode clj-refactor clojure-mode idle-highlight rainbow-delimiters smartparens smart-parens rainbow-delimiters-mode web-mode company tide flycheck org-modern counsel-projectile magit projectile which-key marginalia counsel use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
