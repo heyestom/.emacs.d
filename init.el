@@ -1,49 +1,43 @@
-
-
 ;; Don't show the splash screen
 (setq inhibit-startup-message t)
+;; flash on error / warnings
 (setq visible-bell t)
-
-;; Defailt UI elements
+;; turn off some gui features
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
+;; highlight the current line
 (hl-line-mode t)
+;; Add some space 
 (set-fringe-mode 10)
-
 ;; line numbers
 (global-display-line-numbers-mode t)
+;; show the colum in mode line
 (column-number-mode 1)
-
 
 ;; Initialize package sources and ensure use-package
 (require 'package)
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+			 ("org" . "https://orgmode.org/elpa/")
+			 ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(package-initialize)
+(package-initialize) 
+
 (unless (and package-archive-contents (package-installed-p 'use-package))
   (package-refresh-contents)
   (package-install 'use-package))
-(eval-when-compile (require 'use-package))
+  (eval-when-compile (require 'use-package))
 
 (require 'use-package)
+;; ensure all use package packages are downlaoded
 (setq use-package-always-ensure t)
 
-
-;; theme
 (use-package monokai-theme)
 (load-theme 'monokai t)
 
-;; PATH config
-
 (use-package exec-path-from-shell
    :config (exec-path-from-shell-initialize))
-
-
-;; Ivy - completion - via counsel
 
 (use-package counsel)
 (ivy-mode 1) ;; Ivy completion everywhere
@@ -67,13 +61,11 @@
 (global-set-key (kbd "C-c v") 'ivy-push-view)
 (global-set-key (kbd "C-c V") 'ivy-pop-view)
 
-
-;; Enable richer annotations using the Marginalia package
 (use-package marginalia
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
   :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
+	 :map minibuffer-local-map
+	 ("M-A" . marginalia-cycle))
 
   ;; The :init configuration is always executed (Not lazy!)
   :init
@@ -81,7 +73,6 @@
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
-;; Which key - suggest key chord completion
 (use-package which-key
   :defer 0
   :diminish which-key-modeq
@@ -89,15 +80,13 @@
   (which-key-mode)
   (setq which-key-idle-delay 1))
 
-
-;; projectile - https://docs.projectile.mx/projectile/index.html
 (use-package projectile
   :ensure t
   :diminish projectile-mode
   :init
   (projectile-mode +1)
   :bind (:map projectile-mode-map
-              ("C-c p" . projectile-command-map))
+	      ("C-c p" . projectile-command-map))
   :init
   (setq projectile-project-search-path '("~/Projects/")))
 
@@ -105,15 +94,12 @@
   :after projectile
   :config (counsel-projectile-mode))
 
-;; magit
 (use-package magit
   :commands magit-status)
 
-;; flycheck - syntax checking https://www.flycheck.org/en/latest/
 (use-package flycheck
   :init (global-flycheck-mode))
 
-;; tide - typescript ide for emacs 
 (use-package company)
 (use-package tide)
 (use-package web-mode)
@@ -140,9 +126,9 @@
 ;; tsx
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
 (add-hook 'web-mode-hook
-          (lambda ()
-            (when (string-equal "tsx" (file-name-extension buffer-file-name))
-              (setup-tide-mode))))
+	  (lambda ()
+	    (when (string-equal "tsx" (file-name-extension buffer-file-name))
+	      (setup-tide-mode))))
 ;; enable typescript-tslint checker
 (flycheck-add-mode 'typescript-tslint 'web-mode)
 
@@ -154,14 +140,12 @@
 ;; jsx
 (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
 (add-hook 'web-mode-hook
-          (lambda ()
-            (when (string-equal "jsx" (file-name-extension buffer-file-name))
-              (setup-tide-mode))))
+	  (lambda ()
+	    (when (string-equal "jsx" (file-name-extension buffer-file-name))
+	      (setup-tide-mode))))
 ;; configure jsx-tide checker to run after your default jsx checker
 (flycheck-add-mode 'javascript-eslint 'web-mode)
 (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-
-;; clojure mode (s)
 
 (use-package rainbow-delimiters)
 (use-package smartparens)
@@ -188,7 +172,7 @@
   :config
   (require 'flycheck-clj-kondo)
   :mode (("\\.clj\\'" . clojure-mode)
-         ("\\.edn\\'" . clojure-mode))
+	 ("\\.edn\\'" . clojure-mode))
   :init
   (add-hook 'clojure-mode-hook #'subword-mode)           
   (add-hook 'clojure-mode-hook #'smartparens-mode)       
@@ -202,7 +186,6 @@
   :diminish clj-refactor-mode
   :config (cljr-add-keybindings-with-prefix "C-c C-m"))
 
-
 (use-package cider
   :ensure t
   :defer t
@@ -210,14 +193,13 @@
   :diminish subword-mode
   :config
   (setq nrepl-log-messages t                  
-        cider-repl-use-clojure-font-lock t    
-        cider-prompt-save-file-on-load 'always-save
-        cider-font-lock-dynamically '(macro core function var)
-        nrepl-hide-special-buffers t            
-        cider-overlays-use-font-lock t)
+	cider-repl-use-clojure-font-lock t    
+	cider-prompt-save-file-on-load 'always-save
+	cider-font-lock-dynamically '(macro core function var)
+	nrepl-hide-special-buffers t            
+	cider-overlays-use-font-lock t)
   (flycheck-clojure-setup)
   (cider-repl-toggle-pretty-printing))
-
 
 ;; org-mode
 (global-set-key (kbd "C-c l") #'org-store-link)
@@ -258,16 +240,4 @@
  " now ─────────────────────────────────────────────────")
 
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(monokai-theme flycheck-clojure exec-path-from-shell idle-highlight-mode clj-refactor clojure-mode idle-highlight rainbow-delimiters smartparens smart-parens rainbow-delimiters-mode web-mode company tide flycheck org-modern counsel-projectile magit projectile which-key marginalia counsel use-package)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package ox-hugo)

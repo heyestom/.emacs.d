@@ -1,0 +1,305 @@
+#+title Emacs configuration via org-babel
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+
+* Vanilla UI conf
+
+#+begin_src emacs-lisp
+  ;; Don't show the splash screen
+  (setq inhibit-startup-message t)
+  ;; flash on error / warnings
+  (setq visible-bell t)
+  ;; turn off some gui features
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (menu-bar-mode -1)
+  ;; highlight the current line
+  (hl-line-mode t)
+  ;; Add some space 
+  (set-fringe-mode 10)
+  ;; line numbers
+  (global-display-line-numbers-mode t)
+  ;; show the colum in mode line
+  (column-number-mode 1)
+#+end_src
+
+* TODO Package management
+
+Tell emacs where to search for external packages
+#+begin_src emacs-lisp
+  ;; Initialize package sources and ensure use-package
+  (require 'package)
+
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			   ("org" . "https://orgmode.org/elpa/")
+			   ("elpa" . "https://elpa.gnu.org/packages/")))
+
+  (package-initialize) 
+
+  (unless (and package-archive-contents (package-installed-p 'use-package))
+    (package-refresh-contents)
+    (package-install 'use-package))
+    (eval-when-compile (require 'use-package))
+
+  (require 'use-package)
+  ;; ensure all use package packages are downlaoded
+  (setq use-package-always-ensure t)
+
+
+#+end_src
+
+* Theme
+Make it look good :-)
+#+begin_src emacs-lisp
+  (use-package monokai-theme)
+  (load-theme 'monokai t)
+#+end_src
+
+* PATH configuration
+Ensure emacs uses the shell path so we can access user bins
+#+begin_src emacs-lisp
+  (use-package exec-path-from-shell
+     :config (exec-path-from-shell-initialize))
+#+end_src
+
+* Ivy completion - via counsel
+
+Ivy is a completion framework which provies a lot of extra functionality / niceness over the default ido. 
+
+Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prodvides 
+
+#+begin_src emacs-lisp
+  (use-package counsel)
+  (ivy-mode 1) ;; Ivy completion everywhere
+
+  ;;;; recomended defaults - https://oremacs.com/swiper/#basic-customization
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+
+  ;;;; recomended counsel/ivy/swiper  key bindings
+  (global-set-key (kbd "C-s") 'swiper-isearch)
+  (global-set-key (kbd "M-x") 'counsel-M-x)
+  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+  (global-set-key (kbd "M-y") 'counsel-yank-pop)
+  (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+  (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+  (global-set-key (kbd "<f1> l") 'counsel-find-library)
+  (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+  (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+  (global-set-key (kbd "<f2> j") 'counsel-set-variable)
+  (global-set-key (kbd "C-x b") 'counsel-switch-buffer)
+  (global-set-key (kbd "C-c v") 'ivy-push-view)
+  (global-set-key (kbd "C-c V") 'ivy-pop-view)
+
+#+end_src
+
+* Rich annotations with Marginalia 
+#+begin_src emacs-lisp
+  (use-package marginalia
+    ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+    :bind (("M-A" . marginalia-cycle)
+	   :map minibuffer-local-map
+	   ("M-A" . marginalia-cycle))
+
+    ;; The :init configuration is always executed (Not lazy!)
+    :init
+    ;; Must be in the :init section of use-package such that the mode gets
+    ;; enabled right away. Note that this forces loading the package.
+    (marginalia-mode))
+#+end_src
+
+* Which key - suggest key chord completion
+
+#+begin_src emacs-lisp
+  (use-package which-key
+    :defer 0
+    :diminish which-key-modeq
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 1))
+#+end_src
+
+* Projectile - project managment
+https://docs.projectile.mx/projectile/index.html
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :diminish projectile-mode
+    :init
+    (projectile-mode +1)
+    :bind (:map projectile-mode-map
+		("C-c p" . projectile-command-map))
+    :init
+    (setq projectile-project-search-path '("~/Projects/")))
+
+  (use-package counsel-projectile
+    :after projectile
+    :config (counsel-projectile-mode))
+#+end_src
+** TODO counsel keybindings not properly set up
+
+* Magit - git wrapper
+#+begin_src emacs-lisp
+  (use-package magit
+    :commands magit-status)
+#+end_src
+
+* flycheck - linting / syntax checking etc
+https://www.flycheck.org/en/latest/
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :init (global-flycheck-mode))
+#+end_src
+
+* TIDE - typescript ide for emacs
+#+begin_src emacs-lisp
+  (use-package company)
+  (use-package tide)
+  (use-package web-mode)
+
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1)
+    ;; company is an optional dependency. You have to
+    ;; install it separately via package-install
+    ;; `M-x package-install [ret] company`
+    (company-mode +1))
+
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+  ;; tsx
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+  (add-hook 'web-mode-hook
+	    (lambda ()
+	      (when (string-equal "tsx" (file-name-extension buffer-file-name))
+		(setup-tide-mode))))
+  ;; enable typescript-tslint checker
+  (flycheck-add-mode 'typescript-tslint 'web-mode)
+
+  ;; javascript 
+  (add-hook 'js2-mode-hook #'setup-tide-mode)
+  ;; configure javascript-tide checker to run after your default javascript checker
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+
+  ;; jsx
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
+  (add-hook 'web-mode-hook
+	    (lambda ()
+	      (when (string-equal "jsx" (file-name-extension buffer-file-name))
+		(setup-tide-mode))))
+  ;; configure jsx-tide checker to run after your default jsx checker
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+
+#+end_src
+
+* Clojure packages
+                             
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters)
+  (use-package smartparens)
+  (use-package idle-highlight-mode) 
+  (use-package flycheck-clojure)
+  (use-package flycheck-clj-kondo)
+
+  (use-package flycheck-pos-tip
+    :after flycheck)
+
+  (eval-after-load 'flycheck
+    '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+
+
+  (use-package flycheck-clojure
+    :defer t
+    :commands (flycheck-clojure-setup)               ;; autoload
+    :config
+    (eval-after-load 'flycheck
+      '(setq flycheck-display-errors-function #'flycheck-pos-tip-error-messages))
+    (add-hook 'after-init-hook #'global-flycheck-mode))
+
+  (use-package clojure-mode
+    :config
+    (require 'flycheck-clj-kondo)
+    :mode (("\\.clj\\'" . clojure-mode)
+	   ("\\.edn\\'" . clojure-mode))
+    :init
+    (add-hook 'clojure-mode-hook #'subword-mode)           
+    (add-hook 'clojure-mode-hook #'smartparens-mode)       
+    (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+    (add-hook 'clojure-mode-hook #'eldoc-mode)             
+    (add-hook 'clojure-mode-hook #'idle-highlight-mode))
+
+  (use-package clj-refactor
+    :defer t
+    :ensure t
+    :diminish clj-refactor-mode
+    :config (cljr-add-keybindings-with-prefix "C-c C-m"))
+
+  (use-package cider
+    :ensure t
+    :defer t
+    :init (add-hook 'cider-mode-hook #'clj-refactor-mode)
+    :diminish subword-mode
+    :config
+    (setq nrepl-log-messages t                  
+	  cider-repl-use-clojure-font-lock t    
+	  cider-prompt-save-file-on-load 'always-save
+	  cider-font-lock-dynamically '(macro core function var)
+	  nrepl-hide-special-buffers t            
+	  cider-overlays-use-font-lock t)
+    (flycheck-clojure-setup)
+    (cider-repl-toggle-pretty-printing))
+#+end_src
+
+* Org mode - meta!!!
+
+#+begin_src emacs-lisp
+  ;; org-mode
+  (global-set-key (kbd "C-c l") #'org-store-link)
+  (global-set-key (kbd "C-c a") #'org-agenda)
+  (global-set-key (kbd "C-c c") #'org-capture)
+
+  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+
+  ;;;; org modern - clean theme 
+  (use-package org-modern
+    :init
+    (add-hook 'org-mode-hook #'org-modern-mode)
+    (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
+
+  ;;;; org config from modern
+
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+   org-ellipsis "…"
+
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   " now ─────────────────────────────────────────────────")
+
+
+  (use-package ox-hugo)
+#+end_src
