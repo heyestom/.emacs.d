@@ -14,6 +14,8 @@
 (global-display-line-numbers-mode t)
 ;; show the colum in mode line
 (column-number-mode 1)
+;; wrap lines everywhere
+(global-visual-line-mode 1)
 
 ;; Initialize package sources and ensure use-package
 (require 'package)
@@ -35,6 +37,16 @@
 
 (use-package monokai-theme)
 (load-theme 'monokai t)
+
+(add-hook
+ 'after-init-hook
+ (lambda ()
+   (toggle-frame-fullscreen)
+   (find-file "~/org/personal/journal.org")
+   (split-window-right)
+   (org-agenda-list)
+   (other-window 1)
+   ))
 
 (use-package exec-path-from-shell
    :config (exec-path-from-shell-initialize))
@@ -99,6 +111,45 @@
 
 (use-package flycheck
   :init (global-flycheck-mode))
+
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+(setq ispell-dictionary "en_GB")
+(setq ispell-program-name "aspell")
+(setq ispell-silently-savep t)
+
+(use-package flyspell-correct
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+(use-package flyspell-correct-ivy
+  :after flyspell-correct)
+
+(use-package flyspell-correct-popup
+  :after flyspell-correct)
+
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l"
+	gc-cons-threshold 100000000
+	read-process-output-max (* 1024 1024))
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+	 (clojure-mode . lsp)
+	 ;; if you want which-key integration
+	 (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+;; optionally
+(use-package lsp-ui :commands lsp-ui-mode)
+;; if you are ivy user
+(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+;;  (use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 (use-package company)
 (use-package tide)
@@ -214,7 +265,20 @@
   (add-hook 'org-mode-hook #'org-modern-mode)
   (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
 
-;;;; org config from modern
+;; Choose some fonts
+;; (set-face-attribute 'default nil :family "Iosevka")
+;; (set-face-attribute 'variable-pitch nil :family "Iosevka Aile")
+;; (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
+
+(modify-all-frames-parameters
+ '((right-divider-width . 40)
+   (internal-border-width . 40)))
+(dolist (face '(window-divider
+		window-divider-first-pixel
+		window-divider-last-pixel))
+  (face-spec-reset-face face)
+  (set-face-foreground face (face-attribute 'default :background)))
+(set-face-background 'fringe (face-attribute 'default :background))
 
 (setq
  ;; Edit settings
@@ -227,7 +291,7 @@
  ;; Org styling, hide markup etc.
  org-hide-emphasis-markers t
  org-pretty-entities t
- org-ellipsis "…"
+ org-ellipsis "↯"
 
  ;; Agenda styling
  org-agenda-tags-column 0
@@ -239,5 +303,32 @@
  org-agenda-current-time-string
  " now ─────────────────────────────────────────────────")
 
+(use-package visual-fill-column
+  :hook (org-mode .  (lambda ()
+		       (setq visual-fill-column-width 100
+			     visual-fill-column-center-text t)
+		       (visual-fill-column-mode 1)
+		       )))
 
-(use-package ox-hugo)
+(use-package org-kanban)
+
+(setq org-capture-templates
+  '(("t" "Todo" entry (file+headline "~/org/personal/personal.org" "Todo list")
+     "* TODO %?\n  %i\n  %a" :empty-lines 1)
+    ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+     "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+    ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+     "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+
+    ("w" "work")
+    ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/journal.org")
+     "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+    ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/journal.org")
+     "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+
+    ))
+
+;; export to hugo 
+  (use-package ox-hugo
+    :pin melpa 
+    :after ox)

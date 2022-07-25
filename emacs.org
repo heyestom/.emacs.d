@@ -1,7 +1,7 @@
 #+title Emacs configuration via org-babel
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-* Vanilla UI conf
+* Vanilla UI configuration
 
 #+begin_src emacs-lisp
   ;; Don't show the splash screen
@@ -20,6 +20,8 @@
   (global-display-line-numbers-mode t)
   ;; show the colum in mode line
   (column-number-mode 1)
+  ;; wrap lines everywhere
+  (global-visual-line-mode 1)
 #+end_src
 
 * TODO Package management
@@ -52,6 +54,32 @@ Make it look good :-)
 #+begin_src emacs-lisp
   (use-package monokai-theme)
   (load-theme 'monokai t)
+#+end_src
+
+* TODO Start up buffers
+What to show when opening Emacs without specifying a file. 
+
+There are packages to define what gets shown when Emacs initially loads. Actually I think I might not actually even need a package I'm sure there is some configuration.
+
+Ideas :
+- Agenda + prompt to start a journal entry if there isn't one for the day say far probably via yasnippet or an org capture template
+- Something similar to Doom which gives you a few sensible links, recent projects / files etc.
+- Email inbox
+- Hacker news / Reddit / RSS feed lots of options 
+
+
+#+begin_src emacs-lisp
+
+  (add-hook
+   'after-init-hook
+   (lambda ()
+     (toggle-frame-fullscreen)
+     (find-file "~/org/personal/journal.org")
+     (split-window-right)
+     (org-agenda-list)
+     (other-window 1)
+     ))
+
 #+end_src
 
 * PATH configuration
@@ -92,7 +120,8 @@ Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prod
 
 #+end_src
 
-* Rich annotations with Marginalia 
+* Rich annotations with Marginalia
+Add a desecration / summary of the commands shown in the mini buffer.
 #+begin_src emacs-lisp
   (use-package marginalia
     ;; Either bind `marginalia-cycle` globally or only in the minibuffer
@@ -108,7 +137,7 @@ Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prod
 #+end_src
 
 * Which key - suggest key chord completion
-
+Opens the mini buffer with suggestions of what valid key chords are available 
 #+begin_src emacs-lisp
   (use-package which-key
     :defer 0
@@ -118,7 +147,8 @@ Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prod
     (setq which-key-idle-delay 1))
 #+end_src
 
-* Projectile - project managment
+* Projectile - project management
+Emacs project management tools based on version control or certain build tools like package.json I believe. 
 https://docs.projectile.mx/projectile/index.html
 #+begin_src emacs-lisp
   (use-package projectile
@@ -148,9 +178,57 @@ https://www.flycheck.org/en/latest/
 #+begin_src emacs-lisp
   (use-package flycheck
     :init (global-flycheck-mode))
+
 #+end_src
 
-* TIDE - typescript ide for emacs
+* Spellchecking
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook 'flyspell-mode)
+  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+  (setq ispell-dictionary "en_GB")
+  (setq ispell-program-name "aspell")
+  (setq ispell-silently-savep t)
+
+  (use-package flyspell-correct
+    :after flyspell
+    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+  (use-package flyspell-correct-ivy
+    :after flyspell-correct)
+
+  (use-package flyspell-correct-popup
+    :after flyspell-correct)
+#+end_src
+* LSP mode - IDE features
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :init
+    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    (setq lsp-keymap-prefix "C-c l"
+	  gc-cons-threshold 100000000
+	  read-process-output-max (* 1024 1024))
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+	   (clojure-mode . lsp)
+	   ;; if you want which-key integration
+	   (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+
+  ;; optionally
+  (use-package lsp-ui :commands lsp-ui-mode)
+  ;; if you are ivy user
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+  ;; optionally if you want to use debugger
+  ;;  (use-package dap-mode)
+  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+#+end_src
+* TODO Yasnippet
+[[https://joaotavora.github.io/yasnippet/][Yet another snippet extension]]
+* TIDE - typescript IDE for Emacs
+[[https://github.com/ananthakumaran/tide][TypeScript Interactive Development Environment for Emacs]]:
+
 #+begin_src emacs-lisp
   (use-package company)
   (use-package tide)
@@ -259,23 +337,47 @@ https://www.flycheck.org/en/latest/
     (cider-repl-toggle-pretty-printing))
 #+end_src
 
-* Org mode - meta!!!
+* Org mode - very meta!!!
+
+** Fundamental key binds 
+#+begin_src emacs-lisp
+    ;; org-mode
+    (global-set-key (kbd "C-c l") #'org-store-link)
+    (global-set-key (kbd "C-c a") #'org-agenda)
+    (global-set-key (kbd "C-c c") #'org-capture)
+
+#+end_src
+
+** Org agenda path
 
 #+begin_src emacs-lisp
-  ;; org-mode
-  (global-set-key (kbd "C-c l") #'org-store-link)
-  (global-set-key (kbd "C-c a") #'org-agenda)
-  (global-set-key (kbd "C-c c") #'org-capture)
+    (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
-  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+#+end_src
 
+** Org modern - styling package
+
+#+begin_src emacs-lisp
   ;;;; org modern - clean theme 
   (use-package org-modern
     :init
     (add-hook 'org-mode-hook #'org-modern-mode)
     (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
 
-  ;;;; org config from modern
+  ;; Choose some fonts
+  ;; (set-face-attribute 'default nil :family "Iosevka")
+  ;; (set-face-attribute 'variable-pitch nil :family "Iosevka Aile")
+  ;; (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
+
+  (modify-all-frames-parameters
+   '((right-divider-width . 40)
+     (internal-border-width . 40)))
+  (dolist (face '(window-divider
+		  window-divider-first-pixel
+		  window-divider-last-pixel))
+    (face-spec-reset-face face)
+    (set-face-foreground face (face-attribute 'default :background)))
+  (set-face-background 'fringe (face-attribute 'default :background))
 
   (setq
    ;; Edit settings
@@ -288,7 +390,7 @@ https://www.flycheck.org/en/latest/
    ;; Org styling, hide markup etc.
    org-hide-emphasis-markers t
    org-pretty-entities t
-   org-ellipsis "…"
+   org-ellipsis "↯"
 
    ;; Agenda styling
    org-agenda-tags-column 0
@@ -300,6 +402,51 @@ https://www.flycheck.org/en/latest/
    org-agenda-current-time-string
    " now ─────────────────────────────────────────────────")
 
+#+end_src
 
-  (use-package ox-hugo)
+** Centre text while working with org files
+#+begin_src emacs-lisp
+
+  (use-package visual-fill-column
+    :hook (org-mode .  (lambda ()
+			 (setq visual-fill-column-width 100
+			       visual-fill-column-center-text t)
+			 (visual-fill-column-mode 1)
+			 )))
+
+  #+end_src
+
+** Kanban
+#+begin_src emacs-lisp
+  (use-package org-kanban)
+#+end_src
+** Capture Templates
+
+#+begin_src emacs-lisp
+
+  (setq org-capture-templates
+    '(("t" "Todo" entry (file+headline "~/org/personal/personal.org" "Todo list")
+       "* TODO %?\n  %i\n  %a" :empty-lines 1)
+      ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+       "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+      ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+       "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+
+      ("w" "work")
+      ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/journal.org")
+       "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+      ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/journal.org")
+       "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+
+      ))
+
+#+end_src
+*** TODO Add capture templates for Hugo blog posts
+** Expert dispatch extension - ox hugo 
+#+begin_src emacs-lisp
+;; export to hugo 
+  (use-package ox-hugo
+    :pin melpa 
+    :after ox)
+
 #+end_src
