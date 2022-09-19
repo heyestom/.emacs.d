@@ -51,10 +51,38 @@ Tell emacs where to search for external packages
 
 * Theme
 Make it look good :-)
+
+I like monokai-theme makes me feel like I'm using sublime text 2 again in university.
+
 #+begin_src emacs-lisp
   (use-package monokai-theme)
   (load-theme 'monokai t)
 #+end_src
+
+I really like monokai-theme as the default but with direct light on my monitor it is hard to read. [[https://github.com/doomemacs/themes][Doom themes]] are awesome and provide a choice of lighter themes to swap to when needed.
+
+
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+#+end_src
+
+
 
 * TODO Start up buffers
 What to show when opening Emacs without specifying a file. 
@@ -210,6 +238,7 @@ https://www.flycheck.org/en/latest/
 	  read-process-output-max (* 1024 1024))
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
 	   (clojure-mode . lsp)
+	   (terraform-mode . lsp)
 	   ;; if you want which-key integration
 	   (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
@@ -337,6 +366,17 @@ https://www.flycheck.org/en/latest/
     (cider-repl-toggle-pretty-printing))
 #+end_src
 
+* Terraform packages
+#+begin_src emacs-lisp
+    (use-package terraform-mode
+      :mode (("\\.tf\\'" . terraform-mode)
+	     ("\\.tfvars\\'" . terraform-mode))
+      :custom (terraform-indent-level 2)
+  ;; terraform-ls for stable language server
+      :hook (terraform-mode . lsp)
+      ) 
+#+end_src
+
 * Org mode - very meta!!!
 
 ** Fundamental key binds 
@@ -354,6 +394,32 @@ https://www.flycheck.org/en/latest/
     (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
 #+end_src
+
+** Org todo keywords
+#+begin_src emacs-lisp
+  (setq org-todo-keywords
+	'((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)"  "|" "DONE(d!)" "CANCELED(c@)")))
+  (setq org-log-into-drawer t)
+#+end_src
+
+** Org Babel
+Languors to load 
+#+begin_src emacs-lisp
+  (eval-after-load 'org
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((clojure . t)
+     (emacs-lisp . t)
+     (shell . t))))
+#+end_src
+
+Org Babel Clojure back-end - defer to cider which requires jack in 
+#+begin_src emacs-lisp
+  (setq org-babel-clojure-backend 'cider)
+#+end_src
+
+#+RESULTS:
+: cider
 
 ** Org modern - styling package
 
@@ -416,7 +482,7 @@ https://www.flycheck.org/en/latest/
 
   #+end_src
 
-** Kanban
+** Org Kanban
 #+begin_src emacs-lisp
   (use-package org-kanban)
 #+end_src
@@ -433,15 +499,43 @@ https://www.flycheck.org/en/latest/
        "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
 
       ("w" "work")
-      ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/journal.org")
+      ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
        "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
-      ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/journal.org")
+      ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
        "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
 
       ))
 
 #+end_src
-*** TODO Add capture templates for Hugo blog posts
+
+*** Capture templates for Hugo blog posts
+#+begin_src emacs-lisp
+  ;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
+  (with-eval-after-load 'org-capture
+    (defun org-hugo-new-subtree-post-capture-template ()
+      "Returns `org-capture' template string for new Hugo post.
+  See `org-capture-templates' for more information."
+      (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+	     (fname (org-hugo-slug title)))
+	(mapconcat #'identity
+		   `(
+		     ,(concat "* TODO " title)
+		     ":PROPERTIES:"
+		     ,(concat ":EXPORT_FILE_NAME: " fname)
+		     ":END:"
+		     "%?\n")          ;Place the cursor here finally
+		   "\n")))
+
+    (add-to-list 'org-capture-templates
+		 '("h" "Hugo post"))
+    (add-to-list 'org-capture-templates    
+		 '("hc" "Coding Clojure"
+		   entry
+		   (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
+		   (function org-hugo-new-subtree-post-capture-template))))
+
+#+end_src
+
 ** Expert dispatch extension - ox hugo 
 #+begin_src emacs-lisp
 ;; export to hugo 

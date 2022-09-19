@@ -38,6 +38,23 @@
 (use-package monokai-theme)
 (load-theme 'monokai t)
 
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
 (add-hook
  'after-init-hook
  (lambda ()
@@ -137,6 +154,7 @@
 	read-process-output-max (* 1024 1024))
   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
 	 (clojure-mode . lsp)
+	 (terraform-mode . lsp)
 	 ;; if you want which-key integration
 	 (lsp-mode . lsp-enable-which-key-integration))
   :commands lsp)
@@ -252,12 +270,33 @@
   (flycheck-clojure-setup)
   (cider-repl-toggle-pretty-printing))
 
+(use-package terraform-mode
+    :mode (("\\.tf\\'" . terraform-mode)
+	   ("\\.tfvars\\'" . terraform-mode))
+    :custom (terraform-indent-level 2)
+;; terraform-ls for stable language server
+    :hook (terraform-mode . lsp)
+    )
+
 ;; org-mode
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
 (global-set-key (kbd "C-c c") #'org-capture)
 
 (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)"  "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-log-into-drawer t)
+
+(eval-after-load 'org
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((clojure . t)
+   (emacs-lisp . t)
+   (shell . t))))
+
+(setq org-babel-clojure-backend 'cider)
 
 ;;;; org modern - clean theme 
 (use-package org-modern
@@ -321,12 +360,36 @@
      "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
 
     ("w" "work")
-    ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/journal.org")
+    ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
      "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
-    ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/journal.org")
+    ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
      "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
 
     ))
+
+;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
+(with-eval-after-load 'org-capture
+  (defun org-hugo-new-subtree-post-capture-template ()
+    "Returns `org-capture' template string for new Hugo post.
+See `org-capture-templates' for more information."
+    (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+	   (fname (org-hugo-slug title)))
+      (mapconcat #'identity
+		 `(
+		   ,(concat "* TODO " title)
+		   ":PROPERTIES:"
+		   ,(concat ":EXPORT_FILE_NAME: " fname)
+		   ":END:"
+		   "%?\n")          ;Place the cursor here finally
+		 "\n")))
+
+  (add-to-list 'org-capture-templates
+	       '("h" "Hugo post"))
+  (add-to-list 'org-capture-templates    
+	       '("hc" "Coding Clojure"
+		 entry
+		 (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
+		 (function org-hugo-new-subtree-post-capture-template))))
 
 ;; export to hugo 
   (use-package ox-hugo
