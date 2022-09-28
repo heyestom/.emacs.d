@@ -42,8 +42,8 @@
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
+	doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; (load-theme 'doom-one-light t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -55,11 +55,16 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+(use-package all-the-icons
+  :if (display-graphic-p))
+
+(all-the-icons-install-fonts t)
+
 (add-hook
  'after-init-hook
  (lambda ()
-   (toggle-frame-fullscreen)
    (find-file "~/org/personal/journal.org")
+   ;; (toggle-frame-fullscreen)
    (split-window-right)
    (org-agenda-list)
    (other-window 1)
@@ -168,6 +173,8 @@
 ;; optionally if you want to use debugger
 ;;  (use-package dap-mode)
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+(lsp-install-server nil 'clojure-lsp)
 
 (use-package company)
 (use-package tide)
@@ -341,6 +348,8 @@
    " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
  org-agenda-current-time-string
  " now ─────────────────────────────────────────────────")
+
+(setq org-image-actual-width nil)
 
 (use-package visual-fill-column
   :hook (org-mode .  (lambda ()

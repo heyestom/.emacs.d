@@ -1,6 +1,21 @@
 #+title Emacs configuration via org-babel
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
+This is and probably always will be a work in progress! :-) 
+
+* Manual steps
+There are some steps that require some manual intervention.
+
+** Aspell - spellcheck
+
+~aspell~ needs to be install via ~brew~ / ~apt~ however!
+
+** lsp 
+Installing specfic LSP language servers.
+Clojure can be done from within emacs vai ~M-x lsp-install-server~
+
+Some langages require extra setup...
+
 * Vanilla UI configuration
 
 #+begin_src emacs-lisp
@@ -22,6 +37,7 @@
   (column-number-mode 1)
   ;; wrap lines everywhere
   (global-visual-line-mode 1)
+
 #+end_src
 
 * TODO Package management
@@ -63,26 +79,33 @@ I really like monokai-theme as the default but with direct light on my monitor i
 
 
 #+begin_src emacs-lisp
-(use-package doom-themes
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+	  doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    ;; (load-theme 'doom-one-light t)
 
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 
 #+end_src
 
+Icons!
 
+#+begin_src emacs-lisp
+  (use-package all-the-icons
+    :if (display-graphic-p))
+
+  (all-the-icons-install-fonts t)
+#+end_src
 
 * TODO Start up buffers
 What to show when opening Emacs without specifying a file. 
@@ -101,8 +124,8 @@ Ideas :
   (add-hook
    'after-init-hook
    (lambda ()
-     (toggle-frame-fullscreen)
      (find-file "~/org/personal/journal.org")
+     ;; (toggle-frame-fullscreen)
      (split-window-right)
      (org-agenda-list)
      (other-window 1)
@@ -252,7 +275,11 @@ https://www.flycheck.org/en/latest/
   ;; optionally if you want to use debugger
   ;;  (use-package dap-mode)
   ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+  (lsp-install-server nil 'clojure-lsp)
+  
 #+end_src
+
 * TODO Yasnippet
 [[https://joaotavora.github.io/yasnippet/][Yet another snippet extension]]
 * TIDE - typescript IDE for Emacs
@@ -418,9 +445,6 @@ Org Babel Clojure back-end - defer to cider which requires jack in
   (setq org-babel-clojure-backend 'cider)
 #+end_src
 
-#+RESULTS:
-: cider
-
 ** Org modern - styling package
 
 #+begin_src emacs-lisp
@@ -468,6 +492,12 @@ Org Babel Clojure back-end - defer to cider which requires jack in
    org-agenda-current-time-string
    " now ─────────────────────────────────────────────────")
 
+#+end_src
+
+** Inline images
+Don't use the real image width for inline images - images are rendered WAAAAAY too large to be useful in org files. 
+#+begin_src emacs-lisp
+  (setq org-image-actual-width nil)
 #+end_src
 
 ** Centre text while working with org files
