@@ -21,26 +21,58 @@ Some langages require extra setup...
 #+begin_src emacs-lisp
   ;; Don't show the splash screen
   (setq inhibit-startup-message t)
+
   ;; flash on error / warnings
   (setq visible-bell t)
+
   ;; turn off some gui features
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
   (menu-bar-mode -1)
+
+  (display-fill-column-indicator-mode -1)
+
   ;; highlight the current line
   (hl-line-mode t)
   ;; Add some space 
-  (set-fringe-mode 10)
-  ;; line numbers
-  (global-display-line-numbers-mode t)
-  ;; show the colum in mode line
+  (set-fringe-mode 0)
+
+   ;; line numbers
+  ;; (global-display-line-numbers-mode t)
+
+  ;; show the column in mode line
   (column-number-mode 1)
+
   ;; wrap lines everywhere
   (global-visual-line-mode 1)
 
+  ;; hide the mode line... lets try this
+  ;; (global-hide-mode-line-mode)
+
+  ;; for osx 
+   (setq frame-resize-pixelwise t)
+
+  ;; (setq right-margin-width 0)
+  ;; (setq left-margin-width 0)
+
+  ;; (set-window-buffer nil (current-buffer))
+
+
+  (add-to-list 'default-frame-alist '(internal-border-width . 10))
+  (add-to-list 'default-frame-alist '(alpha 90 90))
+
+
 #+end_src
 
-* TODO Package management
+
+* Run emcas as a server?
+Don't do it this way...
+Better to use the --daemon flag 
+#+begin_src emacs-lisp
+;;  (server-start)
+#+end_src
+
+* Package management
 
 Tell emacs where to search for external packages
 #+begin_src emacs-lisp
@@ -62,6 +94,9 @@ Tell emacs where to search for external packages
   ;; ensure all use package packages are downlaoded
   (setq use-package-always-ensure t)
 
+  ;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
+
+  (use-package quelpa)
 
 #+end_src
 
@@ -72,29 +107,33 @@ I like monokai-theme makes me feel like I'm using sublime text 2 again in univer
 
 #+begin_src emacs-lisp
   (use-package monokai-theme)
-  (load-theme 'monokai t)
+  ;; (load-theme 'monokai t)
 #+end_src
+
+
 
 I really like monokai-theme as the default but with direct light on my monitor it is hard to read. [[https://github.com/doomemacs/themes][Doom themes]] are awesome and provide a choice of lighter themes to swap to when needed.
 
 
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	  doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    ;; (load-theme 'doom-one-light t)
+    (use-package doom-themes
+      :config
+      ;; Global settings (defaults)
+      (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+	    doom-themes-enable-italic t) ; if nil, italics is universally disabled
+      ;; (load-theme 'doom-one-light t)
 
-    ;; Enable flashing mode-line on errors
-    (doom-themes-visual-bell-config)
-    ;; Enable custom neotree theme (all-the-icons must be installed!)
-    (doom-themes-neotree-config)
-    ;; or for treemacs users
-    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-    (doom-themes-treemacs-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
+      ;; Enable flashing mode-line on errors
+      (doom-themes-visual-bell-config)
+      ;; Enable custom neotree theme (all-the-icons must be installed!)
+      (doom-themes-neotree-config)
+      ;; or for treemacs users
+      (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+      (doom-themes-treemacs-config)
+      ;; Corrects (and improves) org-mode's native fontification.
+      (doom-themes-org-config))
+
+  (load-theme 'doom-nord t)
 
 #+end_src
 
@@ -107,7 +146,17 @@ Icons!
   (all-the-icons-install-fonts t)
 #+end_src
 
-* TODO Start up buffers
+* Made line
+
+Turns out Doom also has the best easy drop in mode line package with [[https://github.com/seagle0128/doom-modeline#use-package][doom-modeline]]. 
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
+#+end_src
+
+
+* Start up buffers
 What to show when opening Emacs without specifying a file. 
 
 There are packages to define what gets shown when Emacs initially loads. Actually I think I might not actually even need a package I'm sure there is some configuration.
@@ -121,15 +170,44 @@ Ideas :
 
 #+begin_src emacs-lisp
 
-  (add-hook
-   'after-init-hook
-   (lambda ()
-     (find-file "~/org/personal/journal.org")
-     ;; (toggle-frame-fullscreen)
-     (split-window-right)
-     (org-agenda-list)
-     (other-window 1)
-     ))
+  ;; Okay emacs dashboard just works and is great! 
+
+  (use-package page-break-lines)
+
+  (use-package dashboard
+      :config
+      (dashboard-setup-startup-hook))
+
+  (setq dashboard-items '((agenda . 10)
+			  (recents  . 5)
+			  (projects . 5)
+			  (bookmarks . 5)
+			  (registers . 5)))
+
+  (setq dashboard-match-agenda-entry "important|googlecalendar")
+  
+  ;; for emacsclient 
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+
+  ;; Set the title
+  (setq dashboard-banner-logo-title "Welcome to Emacs Dashboard")
+  ;; Set the banner
+  (setq dashboard-startup-banner "~/.emacs.d/mountain.png")
+  ;; Value can be
+  ;; - nil to display no banner
+  ;; - 'official which displays the official emacs logo
+  ;; - 'logo which displays an alternative emacs logo
+  ;; - 1, 2 or 3 which displays one of the text banners
+  ;; - "path/to/your/image.gif", "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever gif/image/text you would prefer
+  ;; - a cons of '("path/to/your/image.png" . "path/to/your/text.txt")
+
+  ;; Content is not centered by default. To center, set
+  (setq dashboard-center-content t)
+
+  ;; Shortcut "jump" indicators for each section
+  (setq dashboard-show-shortcuts t)
+
+
 
 #+end_src
 
@@ -144,7 +222,7 @@ Ensure emacs uses the shell path so we can access user bins
 
 Ivy is a completion framework which provies a lot of extra functionality / niceness over the default ido. 
 
-Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prodvides 
+Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy provides a completion framework. 
 
 #+begin_src emacs-lisp
   (use-package counsel)
@@ -153,7 +231,9 @@ Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prod
   ;;;; recomended defaults - https://oremacs.com/swiper/#basic-customization
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
-
+  (setq ivy-use-selectable-prompt t)
+  (setq enable-recursive-minibuffers t)
+  
   ;;;; recomended counsel/ivy/swiper  key bindings
   (global-set-key (kbd "C-s") 'swiper-isearch)
   (global-set-key (kbd "M-x") 'counsel-M-x)
@@ -219,6 +299,9 @@ https://docs.projectile.mx/projectile/index.html
 ** TODO counsel keybindings not properly set up
 
 * Magit - git wrapper
+
+Emacs does Git really well with Magit. 
+
 #+begin_src emacs-lisp
   (use-package magit
     :commands magit-status)
@@ -233,6 +316,9 @@ https://www.flycheck.org/en/latest/
 #+end_src
 
 * Spellchecking
+
+Please fix my dyslexia computer! 
+
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook 'flyspell-mode)
   (add-hook 'prog-mode-hook 'flyspell-prog-mode)
@@ -280,8 +366,20 @@ https://www.flycheck.org/en/latest/
   
 #+end_src
 
-* TODO Yasnippet
+* Yasnippet
 [[https://joaotavora.github.io/yasnippet/][Yet another snippet extension]]
+
+#+begin_quote
+YASnippet is a template system for Emacs. It allows you to type an abbreviation and automatically expand it into function templates.
+#+end_quote
+
+#+begin_src emacs-lisp
+  (use-package yasnippet)
+  (use-package yasnippet-snippets)
+
+  (yas-global-mode 1)
+#+end_src
+
 * TIDE - typescript IDE for Emacs
 [[https://github.com/ananthakumaran/tide][TypeScript Interactive Development Environment for Emacs]]:
 
@@ -406,6 +504,8 @@ https://www.flycheck.org/en/latest/
 
 * Org mode - very meta!!!
 
+[[https://orgmode.org/][Org Mode]] is really hard to describe as it does /a lot/ and has a load of extensions.  At it's core Org Mode is an outlining tool.  It defines headers that you can nest and open / collapse.  Built on top of that is a system for scheduling, having different work states like TODO / DONE etc, agendas and exporting files to different formats.  Org sort of does a bit of everything. 
+
 ** Fundamental key binds 
 #+begin_src emacs-lisp
     ;; org-mode
@@ -429,8 +529,15 @@ https://www.flycheck.org/en/latest/
   (setq org-log-into-drawer t)
 #+end_src
 
+** Org refile
+Moving headlines around
+
+#+begin_src emacs-lisp
+  (setq org-refile-targets '(("~/org/personal/personal.org" :maxlevel . 2)))
+#+end_src
+
 ** Org Babel
-Languors to load 
+Languages to load 
 #+begin_src emacs-lisp
   (eval-after-load 'org
   (org-babel-do-load-languages
@@ -443,6 +550,15 @@ Languors to load
 Org Babel Clojure back-end - defer to cider which requires jack in 
 #+begin_src emacs-lisp
   (setq org-babel-clojure-backend 'cider)
+#+end_src
+
+Auto tangle - saves you needing to explicitly tangle org files. 
+#+begin_src emacs-lisp
+  ;; (use-package org-auto-tangle
+  ;; :defer t
+  ;; :hook (org-mode . org-auto-tangle-mode))
+
+  ;; (setq org-auto-tangle-default t)
 #+end_src
 
 ** Org modern - styling package
@@ -460,8 +576,7 @@ Org Babel Clojure back-end - defer to cider which requires jack in
   ;; (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
 
   (modify-all-frames-parameters
-   '((right-divider-width . 40)
-     (internal-border-width . 40)))
+   '((right-divider-width . 40)))
   (dolist (face '(window-divider
 		  window-divider-first-pixel
 		  window-divider-last-pixel))
@@ -521,12 +636,12 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
 
   (setq org-capture-templates
-    '(("t" "Todo" entry (file+headline "~/org/personal/personal.org" "Todo list")
+    '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
        "* TODO %?\n  %i\n  %a" :empty-lines 1)
       ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
-       "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+       "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
       ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
-       "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+       "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
 
       ("w" "work")
       ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
@@ -562,6 +677,11 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 		 '("hc" "Coding Clojure"
 		   entry
 		   (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
+		   (function org-hugo-new-subtree-post-capture-template)))
+    (add-to-list 'org-capture-templates    
+		 '("ht" "they.es"
+		   entry
+		   (file+olp "~/org/blog-posts/they.es/personal-tech-blog.org" "posts")
 		   (function org-hugo-new-subtree-post-capture-template))))
 
 #+end_src
@@ -574,3 +694,90 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
     :after ox)
 
 #+end_src
+
+** Org google cal sync
+
+Get org and google calendar playing together. This is a bit of a WIP in project that requires a fair amountu of external configuration / setup.  However I /really/ like seeing my google calendar events synced into my org agenda.
+
+https://github.com/kidd/org-gcal.el
+#+begin_src emacs-lisp
+
+  (use-package request)
+  (use-package alert)
+  (use-package persist)
+  (use-package aio) ;; async / await 
+  ;;(use-package oauth2)  not in mepla yet use fork
+  (quelpa
+   '(oauth2-auto
+     :fetcher git
+     :url "https://github.com/telotortium/emacs-oauth2-auto.git"))
+
+
+  (use-package org-gcal)
+
+  (setenv "GPG_AGENT_INFO")
+
+  (setq plstore-cache-passphrase-for-symmetric-encryption t)
+
+#+end_src
+
+
+** Org TWBS - quick html view
+Export org-mode docs as HTML compatible with Twitter Bootstrap.
+Pretty and quick exports - useful for sharing org files with other people in a pretty way. 
+https://github.com/marsmining/ox-twbs 
+#+begin_src emacs-lisp
+  (use-package ox-twbs)
+#+end_src
+
+** Org Roam - note taking - knowledge base
+
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :custom
+    (org-roam-directory (file-truename "~/org/roam/"))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n g" . org-roam-graph)
+	   ("C-c n i" . org-roam-node-insert)
+	   ("C-c n c" . org-roam-capture)
+	   ;; Dailies
+	   ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    ;; If you're using a vertical completion framework, you might want a more informative completion interface
+    (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-db-autosync-mode)
+    ;; If using org-roam-protocol
+    ;;(require 'org-roam-protocol)
+    )
+#+end_src
+
+
+*** TODO Investigate org protocol 
+
+*** TODO Investigate org UI 
+
+*** TODO Investigate mobile syncing 
+
+** Org cite ??? i
+
+* Vterm - terminal
+
+[[https://github.com/akermu/emacs-libvterm][Vterm]] is a great terminal emulator that runs inside of Emacs. It feels the closest to a regular terminal application inside of Emacs and is also really fast. 
+
+[[https://github.com/suonlight/multi-vterm][Multi-vterm]] enables multiple Vterm buffers 
+
+#+begin_src emacs-lisp
+  (use-package vterm)
+
+  (use-package hide-mode-line)
+
+  (use-package multi-vterm
+    :config
+    (add-hook 'vterm-mode-hook
+	      (lambda () 
+		(hide-mode-line-mode)
+		)))
+
+#+end_src
+
