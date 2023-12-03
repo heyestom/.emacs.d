@@ -76,27 +76,28 @@ Better to use the --daemon flag
 
 Tell emacs where to search for external packages
 #+begin_src emacs-lisp
-  ;; Initialize package sources and ensure use-package
-  (require 'package)
+    ;; Initialize package sources and ensure use-package
+    (require 'package)
 
-  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-			   ("org" . "https://orgmode.org/elpa/")
-			   ("elpa" . "https://elpa.gnu.org/packages/")))
+    (setq package-archives '(("melpa"  . "https://melpa.org/packages/")
+			     ("org"    . "https://orgmode.org/elpa/")
+			     ("elpa"   . "https://elpa.gnu.org/packages/")
+			     ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
-  (package-initialize) 
+    (package-initialize) 
 
-  (unless (and package-archive-contents (package-installed-p 'use-package))
-    (package-refresh-contents)
-    (package-install 'use-package))
-    (eval-when-compile (require 'use-package))
+    (unless (and package-archive-contents (package-installed-p 'use-package))
+      (package-refresh-contents)
+      (package-install 'use-package))
+      (eval-when-compile (require 'use-package))
 
-  (require 'use-package)
-  ;; ensure all use package packages are downlaoded
-  (setq use-package-always-ensure t)
+    (require 'use-package)
+    ;; ensure all use package packages are downlaoded
+    (setq use-package-always-ensure t)
 
-  ;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
+    ;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
 
-  (use-package quelpa)
+    (use-package quelpa)
 
 #+end_src
 
@@ -146,7 +147,7 @@ Icons!
   (all-the-icons-install-fonts t)
 #+end_src
 
-* Made line
+* Mode line
 
 Turns out Doom also has the best easy drop in mode line package with [[https://github.com/seagle0128/doom-modeline#use-package][doom-modeline]]. 
 #+begin_src emacs-lisp
@@ -338,6 +339,12 @@ Please fix my dyslexia computer!
     :after flyspell-correct)
 #+end_src
 * LSP mode - IDE features
+
+#+begin_src emacs-lisp
+(use-package yaml-mode)  
+#+end_src
+
+
 #+begin_src emacs-lisp
   (use-package lsp-mode
     :init
@@ -398,6 +405,15 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
     ;; company is an optional dependency. You have to
     ;; install it separately via package-install
     ;; `M-x package-install [ret] company`
+
+    (setq tide-format-options
+	  '(:insertSpaceAfterFunctionKeywordForAnonymousFunctions t
+	    :indentSize 2
+	    :tabSize 2
+	    :placeOpenBraceOnNewLineForFunctions nil
+	    : ))
+
+    (setq typescript-indent-level 2)
     (company-mode +1))
 
   ;; aligns annotation to the right hand side
@@ -525,9 +541,16 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
-	'((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)"  "|" "DONE(d!)" "CANCELED(c@)")))
+	'((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)" "BLOG(b)" "PROJECT(p)" "|" "DONE(d!)" "CANCELED(c@)")))
   (setq org-log-into-drawer t)
 #+end_src
+
+** Org Contrib: checklist
+#+begin_src emacs-lisp
+  (use-package org-contrib)
+  (require 'org-checklist) ;; requires a2ps to be installed
+#+end_src
+
 
 ** Org refile
 Moving headlines around
@@ -612,7 +635,7 @@ Auto tangle - saves you needing to explicitly tangle org files.
 ** Inline images
 Don't use the real image width for inline images - images are rendered WAAAAAY too large to be useful in org files. 
 #+begin_src emacs-lisp
-  (setq org-image-actual-width nil)
+  (setq org-image-actual-width 400)
 #+end_src
 
 ** Centre text while working with org files
@@ -759,7 +782,19 @@ https://github.com/marsmining/ox-twbs
 
 *** TODO Investigate mobile syncing 
 
-** Org cite ??? i
+** Org cite
+
+#+begin_src emacs-lisp
+  (require 'oc-natbib)
+  (require 'oc-biblatex)
+  (setq org-cite-export-processors '((latex biblatex)
+				     (t basic)))
+  (setq org-cite-global-bibliography '("~/org/roam/references/master-lib.bib"))
+
+#+end_src
+
+#+RESULTS:
+| ~/org/roam/references/master-lib.bib |
 
 * Vterm - terminal
 
