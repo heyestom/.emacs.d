@@ -16,6 +16,11 @@ Clojure can be done from within emacs vai ~M-x lsp-install-server~
 
 Some langages require extra setup...
 
+* hacks for osx...
+#+begin_src emacs-lisp
+  (setq image-types (cons 'svg image-types))
+#+end_src
+
 * Vanilla UI configuration
 
 #+begin_src emacs-lisp
@@ -64,7 +69,6 @@ Some langages require extra setup...
 
 #+end_src
 
-
 * Run emcas as a server?
 Don't do it this way...
 Better to use the --daemon flag 
@@ -99,6 +103,26 @@ Tell emacs where to search for external packages
 
     (use-package quelpa)
 
+#+end_src
+
+** Straight
+
+#+begin_src emacs-lisp
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+	 (expand-file-name
+	  "straight/repos/straight.el/bootstrap.el"
+	  (or (bound-and-true-p straight-base-dir)
+	      user-emacs-directory)))
+	(bootstrap-version 7))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+	  (url-retrieve-synchronously
+	   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+	   'silent 'inhibit-biscuits)
+	(goto-char (point-max))
+	(eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
 #+end_src
 
 * Theme
@@ -156,7 +180,6 @@ Turns out Doom also has the best easy drop in mode line package with [[https://g
   :init (doom-modeline-mode 1))
 #+end_src
 
-
 * Start up buffers
 What to show when opening Emacs without specifying a file. 
 
@@ -185,7 +208,7 @@ Ideas :
 			  (bookmarks . 5)
 			  (registers . 5)))
 
-  (setq dashboard-match-agenda-entry "important|googlecalendar")
+  (setq dashboard-match-agenda-entry "important")
   
   ;; for emacsclient 
   (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
@@ -759,6 +782,11 @@ https://github.com/marsmining/ox-twbs
   (use-package org-roam
     :custom
     (org-roam-directory (file-truename "~/org/roam/"))
+    (org-roam-capture-templates
+     '(("d" "default" plain
+	"%?"
+	:if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title} \n\n\n#+print_bibliography:")
+	:unnarrowed t)))
     :bind (("C-c n l" . org-roam-buffer-toggle)
 	   ("C-c n f" . org-roam-node-find)
 	   ("C-c n g" . org-roam-graph)
@@ -773,12 +801,30 @@ https://github.com/marsmining/ox-twbs
     ;; If using org-roam-protocol
     ;;(require 'org-roam-protocol)
     )
-#+end_src
 
+
+
+#+end_src
 
 *** TODO Investigate org protocol 
 
-*** TODO Investigate org UI 
+*** TODO Investigate org roam UI 
+
+#+begin_src emacs-lisp
+  (use-package org-roam-ui
+  :straight
+    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+    :after org-roam
+;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;         a hookable mode anymore, you're advised to pick something yourself
+;;         if you don't care about startup time, use
+;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+#+end_src
 
 *** TODO Investigate mobile syncing 
 
@@ -792,9 +838,6 @@ https://github.com/marsmining/ox-twbs
   (setq org-cite-global-bibliography '("~/org/roam/references/master-lib.bib"))
 
 #+end_src
-
-#+RESULTS:
-| ~/org/roam/references/master-lib.bib |
 
 * Vterm - terminal
 
