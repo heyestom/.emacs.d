@@ -123,6 +123,9 @@ Tell emacs where to search for external packages
 	(goto-char (point-max))
 	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
+
+  (straight-use-package 'org)
+
 #+end_src
 
 * Theme
@@ -253,7 +256,7 @@ Counsel and Swiper are built on top of Ivy. Swiper is for searching and Ivy prov
   (ivy-mode 1) ;; Ivy completion everywhere
 
   ;;;; recomended defaults - https://oremacs.com/swiper/#basic-customization
-  (setq ivy-use-virtual-buffers t)
+  (setq ivy-use-virtual-buffers "recentf")
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-use-selectable-prompt t)
   (setq enable-recursive-minibuffers t)
@@ -564,7 +567,7 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
-	'((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)" "BLOG(b)" "PROJECT(p)" "|" "DONE(d!)" "CANCELED(c@)")))
+	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "|" "DONE(d!)" "CANCELED(c@)")))
   (setq org-log-into-drawer t)
 #+end_src
 
@@ -682,20 +685,32 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
 
   (setq org-capture-templates
-    '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
-       "* TODO %?\n  %i\n  %a" :empty-lines 1)
-      ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
-       "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
-      ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
-       "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
+        '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
+           "* INBOX %?
+  :PROPERTIES:
+  :CAPTURED: %U
+  :END:
+   %i 
+    " :empty-lines 1)
+  	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
+           "* PROJECT :projectTag: %?\n** INBOX first task\n** INBOX second task
+  :PROPERTIES:
+  :CAPTURED: %U
+  :END:
+   %i 
+    " :empty-lines 1)
+          ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+           "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+          ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+           "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
+  	
+          ("w" "work")
+          ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
+           "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+          ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
+           "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
 
-      ("w" "work")
-      ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
-       "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
-      ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
-       "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
-
-      ))
+          ))
 
 #+end_src
 
@@ -812,19 +827,20 @@ https://github.com/marsmining/ox-twbs
 
 #+begin_src emacs-lisp
   (use-package org-roam-ui
-  :straight
+    :straight
     (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
     :after org-roam
-;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-;;         a hookable mode anymore, you're advised to pick something yourself
-;;         if you don't care about startup time, use
-;;  :hook (after-init . org-roam-ui-mode)
+    ;; normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+    ;; a hookable mode anymore, you're advised to pick something yourself
+    ;; if you don't care about startup time, use
+    :hook (after-init . org-roam-ui-mode)
     :config
     (setq org-roam-ui-sync-theme t
-          org-roam-ui-follow t
-          org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start t))
+	  org-roam-ui-follow t
+	  org-roam-ui-update-on-save t
+	  org-roam-ui-open-on-start t))
 #+end_src
+
 
 *** TODO Investigate mobile syncing 
 
