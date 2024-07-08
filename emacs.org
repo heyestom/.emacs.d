@@ -21,7 +21,7 @@ Some langages require extra setup...
   (setq image-types (cons 'svg image-types))
 #+end_src
 
-* Vanilla UI configuration
+* Vanilla configuration
 
 #+begin_src emacs-lisp
   ;; Don't show the splash screen
@@ -66,6 +66,9 @@ Some langages require extra setup...
   (add-to-list 'default-frame-alist '(internal-border-width . 10))
   (add-to-list 'default-frame-alist '(alpha 90 90))
 
+
+  ;; keep buffers synced with disc 
+  (global-auto-revert-mode 1)
 
 #+end_src
 
@@ -567,7 +570,7 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
-	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "|" "DONE(d!)" "CANCELED(c@)")))
+	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)"  "|" "DONE(d!)" "CANCELED(c@)")))
   (setq org-log-into-drawer t)
 #+end_src
 
@@ -685,32 +688,35 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
 
   (setq org-capture-templates
-        '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
-           "* INBOX %?
+	'(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
+	   "* INBOX %?
   :PROPERTIES:
   :CAPTURED: %U
   :END:
    %i 
     " :empty-lines 1)
-  	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
-           "* PROJECT :projectTag: %?\n** INBOX first task\n** INBOX second task
+	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
+	   "* PROJECT :projectTag: %?\n** INBOX first task\n** INBOX second task
   :PROPERTIES:
   :CAPTURED: %U
   :END:
    %i 
     " :empty-lines 1)
-          ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
-           "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
-          ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
-           "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
-  	
-          ("w" "work")
-          ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
-           "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
-          ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
-           "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
+	  ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+	  ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+	   "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
 
-          ))
+
+	  ("w" "work")
+	  ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+	  ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+	   "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+	  ("wt" "Work Ticket" entry (file+headline "~/org/work/kroo-journal.org" "Tickets")
+	   "* TODO  %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+      ))
+
 
 #+end_src
 
