@@ -70,6 +70,9 @@ Some langages require extra setup...
   ;; keep buffers synced with disc 
   (global-auto-revert-mode 1)
 
+  ;; auto save buffers 
+  (auto-save-visited-mode 1)
+
 #+end_src
 
 * Run emcas as a server?
@@ -688,33 +691,29 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
 
   (setq org-capture-templates
-	'(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
-	   "* INBOX %?
+  	'(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
+  	   "* INBOX %?
   :PROPERTIES:
   :CAPTURED: %U
   :END:
    %i 
     " :empty-lines 1)
-	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
-	   "* PROJECT :projectTag: %?\n** INBOX first task\n** INBOX second task
-  :PROPERTIES:
-  :CAPTURED: %U
-  :END:
+  	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
+  	   "* PROJECT %? :projectTag: \nDEADLINE: %t \n:PROPERTIES: \n:CAPTURED: %U \n:END: \n** INBOX first task\n** INBOX second task
    %i 
     " :empty-lines 1)
-	  ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
-	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
-	  ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
-	   "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
+  	  ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+  	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+  	  ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+  	   "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
 
-
-	  ("w" "work")
-	  ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/kroo-journal.org")
-	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
-	  ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/kroo-journal.org")
-	   "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
-	  ("wt" "Work Ticket" entry (file+headline "~/org/work/kroo-journal.org" "Tickets")
-	   "* TODO  %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
+  	  ("w" "work")
+  	  ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+  	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+  	  ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+  	   "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+  	  ("wt" "Work Ticket" entry (file+headline "~/org/work/kroo-journal.org" "Tickets")
+  	   "* TODO  %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
       ))
 
 
