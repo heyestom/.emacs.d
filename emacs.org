@@ -19,7 +19,9 @@ Some langages require extra setup...
 * hacks for osx...
 #+begin_src emacs-lisp
   (setq image-types (cons 'svg image-types))
+  (add-to-list 'default-frame-alist '(undecorated-round . t))
 #+end_src
+
 
 * Vanilla configuration
 
@@ -42,7 +44,7 @@ Some langages require extra setup...
   ;; Add some space 
   (set-fringe-mode 0)
 
-   ;; line numbers
+  ;; line numbers
   ;; (global-display-line-numbers-mode t)
 
   ;; show the column in mode line
@@ -61,6 +63,8 @@ Some langages require extra setup...
   ;; (setq left-margin-width 0)
 
   ;; (set-window-buffer nil (current-buffer))
+  (set-face-foreground 'vertical-border "#3b4252")
+  (window-divider-mode 0)
 
 
   (add-to-list 'default-frame-alist '(internal-border-width . 10))
@@ -86,28 +90,28 @@ Better to use the --daemon flag
 
 Tell emacs where to search for external packages
 #+begin_src emacs-lisp
-    ;; Initialize package sources and ensure use-package
-    (require 'package)
+  ;; Initialize package sources and ensure use-package
+  (require 'package)
 
-    (setq package-archives '(("melpa"  . "https://melpa.org/packages/")
-			     ("org"    . "https://orgmode.org/elpa/")
-			     ("elpa"   . "https://elpa.gnu.org/packages/")
-			     ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
+  (setq package-archives '(("melpa"  . "https://melpa.org/packages/")
+  			 ("org"    . "https://orgmode.org/elpa/")
+  			 ("elpa"   . "https://elpa.gnu.org/packages/")
+  			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
-    (package-initialize) 
+  (package-initialize) 
 
-    (unless (and package-archive-contents (package-installed-p 'use-package))
-      (package-refresh-contents)
-      (package-install 'use-package))
-      (eval-when-compile (require 'use-package))
+  (unless (and package-archive-contents (package-installed-p 'use-package))
+    (package-refresh-contenats)
+    (package-install 'use-package))
+    (eval-when-compile (require 'use-package))
 
-    (require 'use-package)
-    ;; ensure all use package packages are downlaoded
-    (setq use-package-always-ensure t)
+  (require 'use-package)
+  ;; ensure all use package packages are downlaoded
+  (setq use-package-always-ensure t)
 
-    ;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
+  ;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
 
-    (use-package quelpa)
+  (use-package quelpa)
 
 #+end_src
 
@@ -337,10 +341,12 @@ Emacs does Git really well with Magit.
 
 #+begin_src emacs-lisp
   (use-package magit
-    :commands magit-status)
+       :straight t
+       :bind ("C-x g" . magit-status)
+       :commands (magit-status magit-get-current-branch))
 #+end_src
 
-* flycheck - linting / syntax checking etc
+* flycheck - linting / syntax checkisng etc
 https://www.flycheck.org/en/latest/
 #+begin_src emacs-lisp
   (use-package flycheck
@@ -556,33 +562,35 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 
 ** Fundamental key binds 
 #+begin_src emacs-lisp
-    ;; org-mode
-    (global-set-key (kbd "C-c l") #'org-store-link)
-    (global-set-key (kbd "C-c a") #'org-agenda)
-    (global-set-key (kbd "C-c c") #'org-capture)
+  ;; org-mode
+  (global-set-key (kbd "C-c l") #'org-store-link)
+  (global-set-key (kbd "C-c a") #'org-agenda)
+  (global-set-key (kbd "C-c c") #'org-capture)
 
+  
 #+end_src
 
 ** Org agenda path
 
 #+begin_src emacs-lisp
-    (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
-
+  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 #+end_src
 
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
-	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)"  "|" "DONE(d!)" "CANCELED(c@)")))
-  (setq org-log-into-drawer t)
+  	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)"  "|" "DONE(d!)" "CANCELED(c@)")))
+  (setq org-log-done 'time)
+
 #+end_src
+
 
 ** Org Contrib: checklist
 #+begin_src emacs-lisp
   (use-package org-contrib)
   (require 'org-checklist) ;; requires a2ps to be installed
+  (require 'org-indent)
 #+end_src
-
 
 ** Org refile
 Moving headlines around
@@ -633,8 +641,8 @@ Auto tangle - saves you needing to explicitly tangle org files.
   (modify-all-frames-parameters
    '((right-divider-width . 40)))
   (dolist (face '(window-divider
-		  window-divider-first-pixel
-		  window-divider-last-pixel))
+  		  window-divider-first-pixel
+  		  window-divider-last-pixel))
     (face-spec-reset-face face)
     (set-face-foreground face (face-attribute 'default :background)))
   (set-face-background 'fringe (face-attribute 'default :background))
@@ -661,6 +669,10 @@ Auto tangle - saves you needing to explicitly tangle org files.
      " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
    org-agenda-current-time-string
    " now ─────────────────────────────────────────────────")
+
+
+  (set-face-foreground 'vertical-border "#3b4252")
+  (window-divider-mode 0)
 
 #+end_src
 
@@ -727,37 +739,45 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
       "Returns `org-capture' template string for new Hugo post.
   See `org-capture-templates' for more information."
       (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
-	     (fname (org-hugo-slug title)))
-	(mapconcat #'identity
-		   `(
-		     ,(concat "* TODO " title)
-		     ":PROPERTIES:"
-		     ,(concat ":EXPORT_FILE_NAME: " fname)
-		     ":END:"
-		     "%?\n")          ;Place the cursor here finally
-		   "\n")))
+  	   (description (read-from-minibuffer "Post Description: ")) ;Prompt to enter the post description
+  	   (fname (org-hugo-slug (concat (format-time-string "%d-%m-%Y") "-" title))))
+        (mapconcat #'identity
+  		 `(
+  		   ,(concat "* TODO " title)
+  		   ":PROPERTIES:"
+  		   ,(concat ":EXPORT_FILE_NAME: " fname)
+  		   ,(concat ":EXPORT_DESCRIPTION: " description)
+  		   ":END:"
+  		   "%?\n")          ;Place the cursor here 
+  		 "\n")))
 
     (add-to-list 'org-capture-templates
-		 '("h" "Hugo post"))
+  	       '("h" "Hugo post"))
     (add-to-list 'org-capture-templates    
-		 '("hc" "Coding Clojure"
-		   entry
-		   (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
-		   (function org-hugo-new-subtree-post-capture-template)))
+  	       '("hc" "Coding Clojure"
+  		 entry
+  		 (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
+  		 (function org-hugo-new-subtree-post-capture-template)))
     (add-to-list 'org-capture-templates    
-		 '("ht" "they.es"
-		   entry
-		   (file+olp "~/org/blog-posts/they.es/personal-tech-blog.org" "posts")
-		   (function org-hugo-new-subtree-post-capture-template))))
+  		 '("ht" "they.es"
+  		   entry
+  		   (file+olp "~/org/blog-posts/they.es/theyes-blog.org" "Blog Section")
+  		   (function org-hugo-new-subtree-post-capture-template)
+  		   :prepend t)))
 
 #+end_src
 
+
 ** Expert dispatch extension - ox hugo 
 #+begin_src emacs-lisp
-;; export to hugo 
+  ;; export to hugo 
   (use-package ox-hugo
     :pin melpa 
     :after ox)
+
+  (setq org-hugo-external-file-extensions-allowed-for-copying
+    '("jpg" "jpeg" "tiff" "png" "svg" "gif" "bmp" "mp4" "pdf" "odt" "doc"
+      "ppt" "xls" "docx" "pptx" "xlsx" "webp"))
 
 #+end_src
 
@@ -800,20 +820,21 @@ https://github.com/marsmining/ox-twbs
 
 #+begin_src emacs-lisp
   (use-package org-roam
+    :straight t
     :custom
     (org-roam-directory (file-truename "~/org/roam/"))
     (org-roam-capture-templates
      '(("d" "default" plain
-	"%?"
-	:if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title} \n\n\n#+print_bibliography:")
-	:unnarrowed t)))
+  	"%?"
+  	:if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title} \n\n\n#+print_bibliography:")
+  	:unnarrowed t)))
     :bind (("C-c n l" . org-roam-buffer-toggle)
-	   ("C-c n f" . org-roam-node-find)
-	   ("C-c n g" . org-roam-graph)
-	   ("C-c n i" . org-roam-node-insert)
-	   ("C-c n c" . org-roam-capture)
-	   ;; Dailies
-	   ("C-c n j" . org-roam-dailies-capture-today))
+  	   ("C-c n f" . org-roam-node-find)
+  	   ("C-c n g" . org-roam-graph)
+  	   ("C-c n i" . org-roam-node-insert)
+  	   ("C-c n c" . org-roam-capture)
+  	   ;; Dailies
+  	   ("C-c n j" . org-roam-dailies-capture-today))
     :config
     ;; If you're using a vertical completion framework, you might want a more informative completion interface
     (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
@@ -855,10 +876,12 @@ https://github.com/marsmining/ox-twbs
   (require 'oc-natbib)
   (require 'oc-biblatex)
   (setq org-cite-export-processors '((latex biblatex)
-				     (t basic)))
+  				     (t basic)))
   (setq org-cite-global-bibliography '("~/org/roam/references/master-lib.bib"))
 
+  (require 'citeproc)
 #+end_src
+
 
 * Vterm - terminal
 
