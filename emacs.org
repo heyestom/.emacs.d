@@ -22,7 +22,6 @@ Some langages require extra setup...
   (add-to-list 'default-frame-alist '(undecorated-round . t))
 #+end_src
 
-
 * Vanilla configuration
 
 #+begin_src emacs-lisp
@@ -81,7 +80,8 @@ Some langages require extra setup...
 
 * Run emcas as a server?
 Don't do it this way...
-Better to use the --daemon flag 
+Better to use the --daemon flag
+Better still to use systemctl 
 #+begin_src emacs-lisp
 ;;  (server-start)
 #+end_src
@@ -145,43 +145,60 @@ I like monokai-theme makes me feel like I'm using sublime text 2 again in univer
 
 #+begin_src emacs-lisp
   (use-package monokai-theme)
-  ;; (load-theme 'monokai t)
+  ;;(load-theme 'monokai t)
 #+end_src
-
-
 
 I really like monokai-theme as the default but with direct light on my monitor it is hard to read. [[https://github.com/doomemacs/themes][Doom themes]] are awesome and provide a choice of lighter themes to swap to when needed.
 
-
 #+begin_src emacs-lisp
-    (use-package doom-themes
-      :config
-      ;; Global settings (defaults)
-      (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	    doom-themes-enable-italic t) ; if nil, italics is universally disabled
-      ;; (load-theme 'doom-one-light t)
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+  	    doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    ;; (load-theme 'doom-one-light t)
 
-      ;; Enable flashing mode-line on errors
-      (doom-themes-visual-bell-config)
-      ;; Enable custom neotree theme (all-the-icons must be installed!)
-      (doom-themes-neotree-config)
-      ;; or for treemacs users
-      (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-      (doom-themes-treemacs-config)
-      ;; Corrects (and improves) org-mode's native fontification.
-      (doom-themes-org-config))
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 
-  (load-theme 'doom-nord t)
+  ;;  (load-theme 'doom-nord t)
+  ;;  (load-theme 'doom-gruvbox t)
 
 #+end_src
 
-Icons!
+
+Dynamic theme with ewal + wallust 
+#+begin_src emacs-lisp
+   (use-package ewal
+     :init (setq ewal-use-built-in-always-p nil
+                 ewal-use-built-in-on-failure-p t
+   	      ewal-json-file "~/.cache/wallust/colors.json"
+                 ewal-built-in-palette "sexy-material"))
+
+   (use-package ewal-doom-themes
+     :ensure t)
+   (load-theme 'ewal-doom-one t)
+
+#+end_src    
+
+#+RESULTS:
+: t
+
+
+* Icons!
 
 #+begin_src emacs-lisp
   (use-package all-the-icons
     :if (display-graphic-p))
 
-  (all-the-icons-install-fonts t)
+  ;; (all-the-icons-install-fonts t)
 #+end_src
 
 * Mode line
@@ -579,11 +596,10 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
-  	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)"  "|" "DONE(d!)" "CANCELED(c@)")))
+  	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)" "READ(r)" "|" "DONE(d!)" "CANCELED(c@)")))
   (setq org-log-done 'time)
 
 #+end_src
-
 
 ** Org Contrib: checklist
 #+begin_src emacs-lisp
@@ -617,11 +633,11 @@ Org Babel Clojure back-end - defer to cider which requires jack in
 
 Auto tangle - saves you needing to explicitly tangle org files. 
 #+begin_src emacs-lisp
-  ;; (use-package org-auto-tangle
-  ;; :defer t
-  ;; :hook (org-mode . org-auto-tangle-mode))
+  (use-package org-auto-tangle
+   :defer t
+   :hook (org-mode . org-auto-tangle-mode))
 
-  ;; (setq org-auto-tangle-default t)
+  (setq org-auto-tangle-default t)
 #+end_src
 
 ** Org modern - styling package
@@ -634,15 +650,14 @@ Auto tangle - saves you needing to explicitly tangle org files.
     (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
 
   ;; Choose some fonts
-  ;; (set-face-attribute 'default nil :family "Iosevka")
-  ;; (set-face-attribute 'variable-pitch nil :family "Iosevka Aile")
-  ;; (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
+  (set-face-attribute 'default nil :family "Hack Nerd Font Mono"  :height 110)
+  (set-face-attribute 'variable-pitch nil :family "Hack Nerd Font" :height 110)
+  (set-face-attribute 'org-modern-symbol nil :family "Hack Nerd Font Mono" :height 110)
 
-  (modify-all-frames-parameters
-   '((right-divider-width . 40)))
+  (modify-all-frames-parameters '((right-divider-width . 40)))
   (dolist (face '(window-divider
-  		  window-divider-first-pixel
-  		  window-divider-last-pixel))
+  		window-divider-first-pixel
+  		window-divider-last-pixel))
     (face-spec-reset-face face)
     (set-face-foreground face (face-attribute 'default :background)))
   (set-face-background 'fringe (face-attribute 'default :background))
@@ -658,7 +673,7 @@ Auto tangle - saves you needing to explicitly tangle org files.
    ;; Org styling, hide markup etc.
    org-hide-emphasis-markers t
    org-pretty-entities t
-   org-ellipsis "↯"
+   org-ellipsis " ↯"
 
    ;; Agenda styling
    org-agenda-tags-column 0
@@ -698,21 +713,26 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
   (use-package org-kanban)
 #+end_src
+
 ** Capture Templates
 
 #+begin_src emacs-lisp
 
   (setq org-capture-templates
-  	'(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
+        '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
   	   "* INBOX %?
   :PROPERTIES:
   :CAPTURED: %U
   :END:
-   %i 
+    " :empty-lines 1)
+  	("r" "Read" entry (file+headline "~/org/personal/personal.org" "Reading List")
+  	 "* READ %?
+  :PROPERTIES:
+  :CAPTURED: %U
+  :END:
     " :empty-lines 1)
   	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
   	   "* PROJECT %? :projectTag: \nDEADLINE: %t \n:PROPERTIES: \n:CAPTURED: %U \n:END: \n** INBOX first task\n** INBOX second task
-   %i 
     " :empty-lines 1)
   	  ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
   	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
@@ -843,13 +863,9 @@ https://github.com/marsmining/ox-twbs
     ;;(require 'org-roam-protocol)
     )
 
-
-
 #+end_src
 
-*** TODO Investigate org protocol 
-
-*** TODO Investigate org roam UI 
+*** Org Roam UI 
 
 #+begin_src emacs-lisp
   (use-package org-roam-ui
