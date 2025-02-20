@@ -101,7 +101,7 @@ Tell emacs where to search for external packages
   (package-initialize) 
 
   (unless (and package-archive-contents (package-installed-p 'use-package))
-    (package-refresh-contenats)
+    (package-refresh-contents)
     (package-install 'use-package))
     (eval-when-compile (require 'use-package))
 
