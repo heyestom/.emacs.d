@@ -115,29 +115,6 @@ Tell emacs where to search for external packages
 
 #+end_src
 
-** Straight
-
-#+begin_src emacs-lisp
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-	 (expand-file-name
-	  "straight/repos/straight.el/bootstrap.el"
-	  (or (bound-and-true-p straight-base-dir)
-	      user-emacs-directory)))
-	(bootstrap-version 7))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-	  (url-retrieve-synchronously
-	   "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-	   'silent 'inhibit-biscuits)
-	(goto-char (point-max))
-	(eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-
-  (straight-use-package 'org)
-
-#+end_src
-
 * Theme
 Make it look good :-)
 
@@ -188,10 +165,6 @@ Dynamic theme with ewal + wallust
 
 #+end_src    
 
-#+RESULTS:
-: t
-
-
 * Icons!
 
 #+begin_src emacs-lisp
@@ -222,48 +195,7 @@ Ideas :
 - Hacker news / Reddit / RSS feed lots of options 
 
 
-#+begin_src emacs-lisp
 
-  ;; Okay emacs dashboard just works and is great! 
-
-  (use-package page-break-lines)
-
-  (use-package dashboard
-      :config
-      (dashboard-setup-startup-hook))
-
-  (setq dashboard-items '((agenda . 10)
-			  (recents  . 5)
-			  (projects . 5)
-			  (bookmarks . 5)
-			  (registers . 5)))
-
-  (setq dashboard-match-agenda-entry "important")
-  
-  ;; for emacsclient 
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-
-  ;; Set the title
-  (setq dashboard-banner-logo-title "Welcome to Emacs Dashboard")
-  ;; Set the banner
-  (setq dashboard-startup-banner "~/.emacs.d/mountain.png")
-  ;; Value can be
-  ;; - nil to display no banner
-  ;; - 'official which displays the official emacs logo
-  ;; - 'logo which displays an alternative emacs logo
-  ;; - 1, 2 or 3 which displays one of the text banners
-  ;; - "path/to/your/image.gif", "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever gif/image/text you would prefer
-  ;; - a cons of '("path/to/your/image.png" . "path/to/your/text.txt")
-
-  ;; Content is not centered by default. To center, set
-  (setq dashboard-center-content t)
-
-  ;; Shortcut "jump" indicators for each section
-  (setq dashboard-show-shortcuts t)
-
-
-
-#+end_src
 
 * PATH configuration
 Ensure emacs uses the shell path so we can access user bins
@@ -350,6 +282,7 @@ https://docs.projectile.mx/projectile/index.html
     :after projectile
     :config (counsel-projectile-mode))
 #+end_src
+
 ** TODO counsel keybindings not properly set up
 
 * Magit - git wrapper
@@ -358,7 +291,6 @@ Emacs does Git really well with Magit.
 
 #+begin_src emacs-lisp
   (use-package magit
-       :straight t
        :bind ("C-x g" . magit-status)
        :commands (magit-status magit-get-current-branch))
 #+end_src
@@ -405,13 +337,13 @@ Please fix my dyslexia computer!
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
     (setq lsp-keymap-prefix "C-c l"
-	  gc-cons-threshold 100000000
-	  read-process-output-max (* 1024 1024))
+  	  gc-cons-threshold 100000000
+  	  read-process-output-max (* 1024 1024))
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-	   (clojure-mode . lsp)
-	   (terraform-mode . lsp)
-	   ;; if you want which-key integration
-	   (lsp-mode . lsp-enable-which-key-integration))
+  	   (clojure-mode . lsp)
+  	   (terraform-mode . lsp)
+  	   ;; if you want which-key integration
+  	   (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
 
   ;; optionally
@@ -424,8 +356,8 @@ Please fix my dyslexia computer!
   ;;  (use-package dap-mode)
   ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
-  (lsp-install-server nil 'clojure-lsp)
-  
+  ;; (lsp-install-server nil 'clojure-lsp)
+
 #+end_src
 
 * Yasnippet
@@ -440,68 +372,6 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
   (use-package yasnippet-snippets)
 
   (yas-global-mode 1)
-#+end_src
-
-* TIDE - typescript IDE for Emacs
-[[https://github.com/ananthakumaran/tide][TypeScript Interactive Development Environment for Emacs]]:
-
-#+begin_src emacs-lisp
-  (use-package company)
-  (use-package tide)
-  (use-package web-mode)
-
-  (defun setup-tide-mode ()
-    (interactive)
-    (tide-setup)
-    (flycheck-mode +1)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled))
-    (eldoc-mode +1)
-    (tide-hl-identifier-mode +1)
-    ;; company is an optional dependency. You have to
-    ;; install it separately via package-install
-    ;; `M-x package-install [ret] company`
-
-    (setq tide-format-options
-	  '(:insertSpaceAfterFunctionKeywordForAnonymousFunctions t
-	    :indentSize 2
-	    :tabSize 2
-	    :placeOpenBraceOnNewLineForFunctions nil
-	    : ))
-
-    (setq typescript-indent-level 2)
-    (company-mode +1))
-
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
-
-  ;; formats the buffer before saving
-  (add-hook 'before-save-hook 'tide-format-before-save)
-  (add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-  ;; tsx
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-  (add-hook 'web-mode-hook
-	    (lambda ()
-	      (when (string-equal "tsx" (file-name-extension buffer-file-name))
-		(setup-tide-mode))))
-  ;; enable typescript-tslint checker
-  (flycheck-add-mode 'typescript-tslint 'web-mode)
-
-  ;; javascript 
-  (add-hook 'js2-mode-hook #'setup-tide-mode)
-  ;; configure javascript-tide checker to run after your default javascript checker
-  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-
-  ;; jsx
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
-  (add-hook 'web-mode-hook
-	    (lambda ()
-	      (when (string-equal "jsx" (file-name-extension buffer-file-name))
-		(setup-tide-mode))))
-  ;; configure jsx-tide checker to run after your default jsx checker
-  (flycheck-add-mode 'javascript-eslint 'web-mode)
-  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
-
 #+end_src
 
 * Clojure packages
@@ -562,17 +432,6 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
     (cider-repl-toggle-pretty-printing))
 #+end_src
 
-* Terraform packages
-#+begin_src emacs-lisp
-    (use-package terraform-mode
-      :mode (("\\.tf\\'" . terraform-mode)
-	     ("\\.tfvars\\'" . terraform-mode))
-      :custom (terraform-indent-level 2)
-  ;; terraform-ls for stable language server
-      :hook (terraform-mode . lsp)
-      ) 
-#+end_src
-
 * Org mode - very meta!!!
 
 [[https://orgmode.org/][Org Mode]] is really hard to describe as it does /a lot/ and has a load of extensions.  At it's core Org Mode is an outlining tool.  It defines headers that you can nest and open / collapse.  Built on top of that is a system for scheduling, having different work states like TODO / DONE etc, agendas and exporting files to different formats.  Org sort of does a bit of everything. 
@@ -580,11 +439,11 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
 ** Fundamental key binds 
 #+begin_src emacs-lisp
   ;; org-mode
+  (use-package org)
   (global-set-key (kbd "C-c l") #'org-store-link)
   (global-set-key (kbd "C-c a") #'org-agenda)
   (global-set-key (kbd "C-c c") #'org-capture)
 
-  
 #+end_src
 
 ** Org agenda path
@@ -593,19 +452,13 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
   (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 #+end_src
 
+
 ** Org todo keywords
 #+begin_src emacs-lisp
   (setq org-todo-keywords
   	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)" "READ(r)" "|" "DONE(d!)" "CANCELED(c@)")))
   (setq org-log-done 'time)
 
-#+end_src
-
-** Org Contrib: checklist
-#+begin_src emacs-lisp
-  (use-package org-contrib)
-  (require 'org-checklist) ;; requires a2ps to be installed
-  (require 'org-indent)
 #+end_src
 
 ** Org refile
@@ -801,32 +654,6 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 
 #+end_src
 
-** Org google cal sync
-
-Get org and google calendar playing together. This is a bit of a WIP in project that requires a fair amountu of external configuration / setup.  However I /really/ like seeing my google calendar events synced into my org agenda.
-
-https://github.com/kidd/org-gcal.el
-#+begin_src emacs-lisp
-
-  (use-package request)
-  (use-package alert)
-  (use-package persist)
-  (use-package aio) ;; async / await 
-  ;;(use-package oauth2)  not in mepla yet use fork
-  (quelpa
-   '(oauth2-auto
-     :fetcher git
-     :url "https://github.com/telotortium/emacs-oauth2-auto.git"))
-
-
-  (use-package org-gcal)
-
-  (setenv "GPG_AGENT_INFO")
-
-  (setq plstore-cache-passphrase-for-symmetric-encryption t)
-
-#+end_src
-
 
 ** Org TWBS - quick html view
 Export org-mode docs as HTML compatible with Twitter Bootstrap.
@@ -840,7 +667,6 @@ https://github.com/marsmining/ox-twbs
 
 #+begin_src emacs-lisp
   (use-package org-roam
-    :straight t
     :custom
     (org-roam-directory (file-truename "~/org/roam/"))
     (org-roam-capture-templates
@@ -869,8 +695,7 @@ https://github.com/marsmining/ox-twbs
 
 #+begin_src emacs-lisp
   (use-package org-roam-ui
-    :straight
-    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+
     :after org-roam
     ;; normally we'd recommend hooking orui after org-roam, but since org-roam does not have
     ;; a hookable mode anymore, you're advised to pick something yourself
@@ -878,9 +703,9 @@ https://github.com/marsmining/ox-twbs
     :hook (after-init . org-roam-ui-mode)
     :config
     (setq org-roam-ui-sync-theme t
-	  org-roam-ui-follow t
-	  org-roam-ui-update-on-save t
-	  org-roam-ui-open-on-start t))
+  	  org-roam-ui-follow t
+  	  org-roam-ui-update-on-save t
+  	  org-roam-ui-open-on-start t))
 #+end_src
 
 
@@ -895,9 +720,8 @@ https://github.com/marsmining/ox-twbs
   				     (t basic)))
   (setq org-cite-global-bibliography '("~/org/roam/references/master-lib.bib"))
 
-  (require 'citeproc)
+  (use-package citeproc)
 #+end_src
-
 
 * Vterm - terminal
 
@@ -906,16 +730,17 @@ https://github.com/marsmining/ox-twbs
 [[https://github.com/suonlight/multi-vterm][Multi-vterm]] enables multiple Vterm buffers 
 
 #+begin_src emacs-lisp
-  (use-package vterm)
+      (use-package vterm
+        :custom
+        (vterm-always-compile-module t))
 
-  (use-package hide-mode-line)
+      (use-package hide-mode-line)
 
-  (use-package multi-vterm
-    :config
-    (add-hook 'vterm-mode-hook
-	      (lambda () 
-		(hide-mode-line-mode)
-		)))
+      (use-package multi-vterm
+        :config
+        (add-hook 'vterm-mode-hook
+    	      (lambda () 
+    		(hide-mode-line-mode)
+    		)))
 
 #+end_src
-

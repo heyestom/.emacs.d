@@ -1,28 +1,66 @@
+(setq image-types (cons 'svg image-types))
+(add-to-list 'default-frame-alist '(undecorated-round . t))
+
 ;; Don't show the splash screen
 (setq inhibit-startup-message t)
+
 ;; flash on error / warnings
 (setq visible-bell t)
+
 ;; turn off some gui features
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (menu-bar-mode -1)
+
+(display-fill-column-indicator-mode -1)
+
 ;; highlight the current line
 (hl-line-mode t)
 ;; Add some space 
-(set-fringe-mode 10)
+(set-fringe-mode 0)
+
 ;; line numbers
-(global-display-line-numbers-mode t)
-;; show the colum in mode line
+;; (global-display-line-numbers-mode t)
+
+;; show the column in mode line
 (column-number-mode 1)
+
 ;; wrap lines everywhere
 (global-visual-line-mode 1)
+
+;; hide the mode line... lets try this
+;; (global-hide-mode-line-mode)
+
+;; for osx 
+ (setq frame-resize-pixelwise t)
+
+;; (setq right-margin-width 0)
+;; (setq left-margin-width 0)
+
+;; (set-window-buffer nil (current-buffer))
+(set-face-foreground 'vertical-border "#3b4252")
+(window-divider-mode 0)
+
+
+(add-to-list 'default-frame-alist '(internal-border-width . 10))
+(add-to-list 'default-frame-alist '(alpha 90 90))
+
+
+;; keep buffers synced with disc 
+(global-auto-revert-mode 1)
+
+;; auto save buffers 
+(auto-save-visited-mode 1)
+
+;;  (server-start)
 
 ;; Initialize package sources and ensure use-package
 (require 'package)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-			 ("org" . "https://orgmode.org/elpa/")
-			 ("elpa" . "https://elpa.gnu.org/packages/")))
+(setq package-archives '(("melpa"  . "https://melpa.org/packages/")
+			 ("org"    . "https://orgmode.org/elpa/")
+			 ("elpa"   . "https://elpa.gnu.org/packages/")
+			 ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 (package-initialize) 
 
@@ -35,14 +73,18 @@
 ;; ensure all use package packages are downlaoded
 (setq use-package-always-ensure t)
 
+;; quelpa is a tool to compile and install Emacs Lisp packages locally from local or remote source code. https://github.com/quelpa/quelpa
+
+(use-package quelpa)
+
 (use-package monokai-theme)
-(load-theme 'monokai t)
+;;(load-theme 'monokai t)
 
 (use-package doom-themes
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	doom-themes-enable-italic t) ; if nil, italics is universally disabled
+	    doom-themes-enable-italic t) ; if nil, italics is universally disabled
   ;; (load-theme 'doom-one-light t)
 
   ;; Enable flashing mode-line on errors
@@ -55,20 +97,27 @@
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+;;  (load-theme 'doom-nord t)
+;;  (load-theme 'doom-gruvbox t)
+
+(use-package ewal
+  :init (setq ewal-use-built-in-always-p nil
+              ewal-use-built-in-on-failure-p t
+	      ewal-json-file "~/.cache/wallust/colors.json"
+              ewal-built-in-palette "sexy-material"))
+
+(use-package ewal-doom-themes
+  :ensure t)
+(load-theme 'ewal-doom-one t)
+
 (use-package all-the-icons
   :if (display-graphic-p))
 
-(all-the-icons-install-fonts t)
+;; (all-the-icons-install-fonts t)
 
-(add-hook
- 'after-init-hook
- (lambda ()
-   (find-file "~/org/personal/journal.org")
-   ;; (toggle-frame-fullscreen)
-   (split-window-right)
-   (org-agenda-list)
-   (other-window 1)
-   ))
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
 
 (use-package exec-path-from-shell
    :config (exec-path-from-shell-initialize))
@@ -77,8 +126,10 @@
 (ivy-mode 1) ;; Ivy completion everywhere
 
 ;;;; recomended defaults - https://oremacs.com/swiper/#basic-customization
-(setq ivy-use-virtual-buffers t)
+(setq ivy-use-virtual-buffers "recentf")
 (setq ivy-count-format "(%d/%d) ")
+(setq ivy-use-selectable-prompt t)
+(setq enable-recursive-minibuffers t)
 
 ;;;; recomended counsel/ivy/swiper  key bindings
 (global-set-key (kbd "C-s") 'swiper-isearch)
@@ -98,8 +149,8 @@
 (use-package marginalia
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
   :bind (("M-A" . marginalia-cycle)
-	 :map minibuffer-local-map
-	 ("M-A" . marginalia-cycle))
+	   :map minibuffer-local-map
+	   ("M-A" . marginalia-cycle))
 
   ;; The :init configuration is always executed (Not lazy!)
   :init
@@ -120,16 +171,17 @@
   :init
   (projectile-mode +1)
   :bind (:map projectile-mode-map
-	      ("C-c p" . projectile-command-map))
+		("C-c p" . projectile-command-map))
   :init
-  (setq projectile-project-search-path '("~/Projects/")))
+  (setq projectile-project-search-path '("~/Kroo/")))
 
 (use-package counsel-projectile
   :after projectile
   :config (counsel-projectile-mode))
 
 (use-package magit
-  :commands magit-status)
+     :bind ("C-x g" . magit-status)
+     :commands (magit-status magit-get-current-branch))
 
 (use-package flycheck
   :init (global-flycheck-mode))
@@ -151,17 +203,19 @@
 (use-package flyspell-correct-popup
   :after flyspell-correct)
 
+(use-package yaml-mode)
+
 (use-package lsp-mode
   :init
   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
   (setq lsp-keymap-prefix "C-c l"
-	gc-cons-threshold 100000000
-	read-process-output-max (* 1024 1024))
+	  gc-cons-threshold 100000000
+	  read-process-output-max (* 1024 1024))
   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-	 (clojure-mode . lsp)
-	 (terraform-mode . lsp)
-	 ;; if you want which-key integration
-	 (lsp-mode . lsp-enable-which-key-integration))
+	   (clojure-mode . lsp)
+	   (terraform-mode . lsp)
+	   ;; if you want which-key integration
+	   (lsp-mode . lsp-enable-which-key-integration))
   :commands lsp)
 
 ;; optionally
@@ -174,54 +228,12 @@
 ;;  (use-package dap-mode)
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
-(lsp-install-server nil 'clojure-lsp)
+;; (lsp-install-server nil 'clojure-lsp)
 
-(use-package company)
-(use-package tide)
-(use-package web-mode)
+(use-package yasnippet)
+(use-package yasnippet-snippets)
 
-(defun setup-tide-mode ()
-  (interactive)
-  (tide-setup)
-  (flycheck-mode +1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (eldoc-mode +1)
-  (tide-hl-identifier-mode +1)
-  ;; company is an optional dependency. You have to
-  ;; install it separately via package-install
-  ;; `M-x package-install [ret] company`
-  (company-mode +1))
-
-;; aligns annotation to the right hand side
-(setq company-tooltip-align-annotations t)
-
-;; formats the buffer before saving
-(add-hook 'before-save-hook 'tide-format-before-save)
-(add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-;; tsx
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
-(add-hook 'web-mode-hook
-	  (lambda ()
-	    (when (string-equal "tsx" (file-name-extension buffer-file-name))
-	      (setup-tide-mode))))
-;; enable typescript-tslint checker
-(flycheck-add-mode 'typescript-tslint 'web-mode)
-
-;; javascript 
-(add-hook 'js2-mode-hook #'setup-tide-mode)
-;; configure javascript-tide checker to run after your default javascript checker
-(flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-
-;; jsx
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . web-mode))
-(add-hook 'web-mode-hook
-	  (lambda ()
-	    (when (string-equal "jsx" (file-name-extension buffer-file-name))
-	      (setup-tide-mode))))
-;; configure jsx-tide checker to run after your default jsx checker
-(flycheck-add-mode 'javascript-eslint 'web-mode)
-(flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+(yas-global-mode 1)
 
 (use-package rainbow-delimiters)
 (use-package smartparens)
@@ -248,7 +260,7 @@
   :config
   (require 'flycheck-clj-kondo)
   :mode (("\\.clj\\'" . clojure-mode)
-	 ("\\.edn\\'" . clojure-mode))
+	   ("\\.edn\\'" . clojure-mode))
   :init
   (add-hook 'clojure-mode-hook #'subword-mode)           
   (add-hook 'clojure-mode-hook #'smartparens-mode)       
@@ -269,23 +281,16 @@
   :diminish subword-mode
   :config
   (setq nrepl-log-messages t                  
-	cider-repl-use-clojure-font-lock t    
-	cider-prompt-save-file-on-load 'always-save
-	cider-font-lock-dynamically '(macro core function var)
-	nrepl-hide-special-buffers t            
-	cider-overlays-use-font-lock t)
+	  cider-repl-use-clojure-font-lock t    
+	  cider-prompt-save-file-on-load 'always-save
+	  cider-font-lock-dynamically '(macro core function var)
+	  nrepl-hide-special-buffers t            
+	  cider-overlays-use-font-lock t)
   (flycheck-clojure-setup)
   (cider-repl-toggle-pretty-printing))
 
-(use-package terraform-mode
-    :mode (("\\.tf\\'" . terraform-mode)
-	   ("\\.tfvars\\'" . terraform-mode))
-    :custom (terraform-indent-level 2)
-;; terraform-ls for stable language server
-    :hook (terraform-mode . lsp)
-    )
-
 ;; org-mode
+(use-package org)
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
 (global-set-key (kbd "C-c c") #'org-capture)
@@ -293,8 +298,10 @@
 (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w@/!)" "BOOKED(b!)"  "|" "DONE(d!)" "CANCELED(c@)")))
-(setq org-log-into-drawer t)
+	'((sequence "INBOX(i)" "TODO(t)" "WAIT(w@/!)" "BLOG(b)" "PROJECT(p)" "AREA(a)" "READ(r)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-log-done 'time)
+
+(setq org-refile-targets '(("~/org/personal/personal.org" :maxlevel . 2)))
 
 (eval-after-load 'org
 (org-babel-do-load-languages
@@ -305,6 +312,12 @@
 
 (setq org-babel-clojure-backend 'cider)
 
+(use-package org-auto-tangle
+ :defer t
+ :hook (org-mode . org-auto-tangle-mode))
+
+(setq org-auto-tangle-default t)
+
 ;;;; org modern - clean theme 
 (use-package org-modern
   :init
@@ -312,13 +325,11 @@
   (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
 
 ;; Choose some fonts
-;; (set-face-attribute 'default nil :family "Iosevka")
-;; (set-face-attribute 'variable-pitch nil :family "Iosevka Aile")
-;; (set-face-attribute 'org-modern-symbol nil :family "Iosevka")
+(set-face-attribute 'default nil :family "Hack Nerd Font Mono"  :height 110)
+(set-face-attribute 'variable-pitch nil :family "Hack Nerd Font" :height 110)
+(set-face-attribute 'org-modern-symbol nil :family "Hack Nerd Font Mono" :height 110)
 
-(modify-all-frames-parameters
- '((right-divider-width . 40)
-   (internal-border-width . 40)))
+(modify-all-frames-parameters '((right-divider-width . 40)))
 (dolist (face '(window-divider
 		window-divider-first-pixel
 		window-divider-last-pixel))
@@ -337,7 +348,7 @@
  ;; Org styling, hide markup etc.
  org-hide-emphasis-markers t
  org-pretty-entities t
- org-ellipsis "↯"
+ org-ellipsis " ↯"
 
  ;; Agenda styling
  org-agenda-tags-column 0
@@ -349,31 +360,49 @@
  org-agenda-current-time-string
  " now ─────────────────────────────────────────────────")
 
-(setq org-image-actual-width nil)
+
+(set-face-foreground 'vertical-border "#3b4252")
+(window-divider-mode 0)
+
+(setq org-image-actual-width 400)
 
 (use-package visual-fill-column
   :hook (org-mode .  (lambda ()
-		       (setq visual-fill-column-width 100
-			     visual-fill-column-center-text t)
-		       (visual-fill-column-mode 1)
-		       )))
+			 (setq visual-fill-column-width 100
+			       visual-fill-column-center-text t)
+			 (visual-fill-column-mode 1)
+			 )))
 
 (use-package org-kanban)
 
 (setq org-capture-templates
-  '(("t" "Todo" entry (file+headline "~/org/personal/personal.org" "Todo list")
-     "* TODO %?\n  %i\n  %a" :empty-lines 1)
-    ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
-     "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
-    ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
-     "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+      '(("i" "Inbox" entry (file+headline "~/org/personal/personal.org" "Inbox")
+	   "* INBOX %?
+:PROPERTIES:
+:CAPTURED: %U
+:END:
+  " :empty-lines 1)
+	("r" "Read" entry (file+headline "~/org/personal/personal.org" "Reading List")
+	 "* READ %?
+:PROPERTIES:
+:CAPTURED: %U
+:END:
+  " :empty-lines 1)
+	("p" "Project [0/2]" entry (file+headline "~/org/personal/personal.org" "Projects")
+	   "* PROJECT %? :projectTag: \nDEADLINE: %t \n:PROPERTIES: \n:CAPTURED: %U \n:END: \n** INBOX first task\n** INBOX second task
+  " :empty-lines 1)
+	  ("j" "Journal" entry (file+olp+datetree "~/org/personal/journal.org")
+	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+	  ("J" "Journal entry at time" entry (file+olp+datetree "~/org/personal/journal.org")
+	   "* %T %?\n%i\n" :time-prompt t :empty-lines 1)
 
-    ("w" "work")
-    ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/work-journal.org")
-     "* %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
-    ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/work-journal.org")
-     "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
-
+	  ("w" "work")
+	  ("wj" "Work Journal" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+	   "* %?\nEntered on %U\n  %i\n" :empty-lines 1)
+	  ("wJ" "Work Journal entry at time" entry (file+olp+datetree "~/org/work/kroo-journal.org")
+	   "* %T %?\n%i\n%a" :time-prompt t :empty-lines 1)
+	  ("wt" "Work Ticket" entry (file+headline "~/org/work/kroo-journal.org" "Tickets")
+	   "* TODO  %?\nEntered on %U\n  %i\n  %a" :empty-lines 1)
     ))
 
 ;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
@@ -382,14 +411,16 @@
     "Returns `org-capture' template string for new Hugo post.
 See `org-capture-templates' for more information."
     (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
-	   (fname (org-hugo-slug title)))
+	   (description (read-from-minibuffer "Post Description: ")) ;Prompt to enter the post description
+	   (fname (org-hugo-slug (concat (format-time-string "%d-%m-%Y") "-" title))))
       (mapconcat #'identity
 		 `(
 		   ,(concat "* TODO " title)
 		   ":PROPERTIES:"
 		   ,(concat ":EXPORT_FILE_NAME: " fname)
+		   ,(concat ":EXPORT_DESCRIPTION: " description)
 		   ":END:"
-		   "%?\n")          ;Place the cursor here finally
+		   "%?\n")          ;Place the cursor here 
 		 "\n")))
 
   (add-to-list 'org-capture-templates
@@ -398,9 +429,78 @@ See `org-capture-templates' for more information."
 	       '("hc" "Coding Clojure"
 		 entry
 		 (file+olp "~/org/blog-posts/coding-clojure/coding-clojure.org" "posts")
-		 (function org-hugo-new-subtree-post-capture-template))))
+		 (function org-hugo-new-subtree-post-capture-template)))
+  (add-to-list 'org-capture-templates    
+		 '("ht" "they.es"
+		   entry
+		   (file+olp "~/org/blog-posts/they.es/theyes-blog.org" "Blog Section")
+		   (function org-hugo-new-subtree-post-capture-template)
+		   :prepend t)))
 
 ;; export to hugo 
-  (use-package ox-hugo
-    :pin melpa 
-    :after ox)
+(use-package ox-hugo
+  :pin melpa 
+  :after ox)
+
+(setq org-hugo-external-file-extensions-allowed-for-copying
+  '("jpg" "jpeg" "tiff" "png" "svg" "gif" "bmp" "mp4" "pdf" "odt" "doc"
+    "ppt" "xls" "docx" "pptx" "xlsx" "webp"))
+
+(use-package ox-twbs)
+
+(use-package org-roam
+  :custom
+  (org-roam-directory (file-truename "~/org/roam/"))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+	"%?"
+	:if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title} \n\n\n#+print_bibliography:")
+	:unnarrowed t)))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n g" . org-roam-graph)
+	   ("C-c n i" . org-roam-node-insert)
+	   ("C-c n c" . org-roam-capture)
+	   ;; Dailies
+	   ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode)
+  ;; If using org-roam-protocol
+  ;;(require 'org-roam-protocol)
+  )
+
+(use-package org-roam-ui
+
+  :after org-roam
+  ;; normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;; a hookable mode anymore, you're advised to pick something yourself
+  ;; if you don't care about startup time, use
+  :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+	  org-roam-ui-follow t
+	  org-roam-ui-update-on-save t
+	  org-roam-ui-open-on-start t))
+
+(require 'oc-natbib)
+(require 'oc-biblatex)
+(setq org-cite-export-processors '((latex biblatex)
+				     (t basic)))
+(setq org-cite-global-bibliography '("~/org/roam/references/master-lib.bib"))
+
+(use-package citeproc)
+
+(use-package vterm
+  :custom
+  (vterm-always-compile-module t))
+
+(use-package hide-mode-line)
+
+(use-package multi-vterm
+  :config
+  (add-hook 'vterm-mode-hook
+	      (lambda () 
+		(hide-mode-line-mode)
+		)))
