@@ -40,8 +40,9 @@ Some langages require extra setup...
 
   ;; highlight the current line
   (hl-line-mode t)
+
   ;; Add some space 
-  (set-fringe-mode 0)
+  (set-fringe-mode 10)
 
   ;; line numbers
   ;; (global-display-line-numbers-mode t)
@@ -65,10 +66,7 @@ Some langages require extra setup...
   (set-face-foreground 'vertical-border "#3b4252")
   (window-divider-mode 0)
 
-
-  (add-to-list 'default-frame-alist '(internal-border-width . 10))
-  (add-to-list 'default-frame-alist '(alpha 90 90))
-
+  (add-to-list 'default-frame-alist '(internal-border-width . 0))
 
   ;; keep buffers synced with disc 
   (global-auto-revert-mode 1)
@@ -153,17 +151,20 @@ I really like monokai-theme as the default but with direct light on my monitor i
 
 Dynamic theme with ewal + wallust 
 #+begin_src emacs-lisp
-   (use-package ewal
-     :init (setq ewal-use-built-in-always-p nil
-                 ewal-use-built-in-on-failure-p t
-   	      ewal-json-file "~/.cache/wallust/colors.json"
-                 ewal-built-in-palette "sexy-material"))
+  (use-package ewal
+    :init (setq ewal-use-built-in-always-p nil
+                ewal-use-built-in-on-failure-p t
+  	      ewal-json-file "~/.cache/wallust/colors.json"
+                ewal-built-in-palette "sexy-material"))
 
-   (use-package ewal-doom-themes
-     :ensure t)
-   (load-theme 'ewal-doom-one t)
-
+  (use-package ewal-doom-themes
+    :ensure t)
+  (load-theme 'ewal-doom-one t)
 #+end_src    
+
+#+RESULTS:
+: t
+
 
 * Icons!
 
@@ -325,6 +326,30 @@ Please fix my dyslexia computer!
   (use-package flyspell-correct-popup
     :after flyspell-correct)
 #+end_src
+
+
+* Tree sitter
+
+This is straight form [[https://github.com/mickeynp/combobulate][combobulate]]
+
+#+begin_src emacs-lisp
+
+  (use-package treesit-auto
+    :ensure t
+    :commands global-treesit-auto-mode
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode +1))
+
+
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . typescript-ts-mode))
+#+end_src
+
 * LSP mode - IDE features
 
 #+begin_src emacs-lisp
@@ -337,13 +362,16 @@ Please fix my dyslexia computer!
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
     (setq lsp-keymap-prefix "C-c l"
-  	  gc-cons-threshold 100000000
-  	  read-process-output-max (* 1024 1024))
+  	gc-cons-threshold 100000000
+  	read-process-output-max (* 1024 1024))
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-  	   (clojure-mode . lsp)
-  	   (terraform-mode . lsp)
-  	   ;; if you want which-key integration
-  	   (lsp-mode . lsp-enable-which-key-integration))
+  	 (lsp-mode . lsp-diagnostics-mode)
+  	 (clojure-mode . lsp)
+  	 (terraform-mode . lsp)
+  	 ((tsx-ts-mode typescript-ts-mode js-ts-mode) . lsp-deferred)
+  	 ;; if you want which-key integration
+  	 (lsp-mode . lsp-enable-which-key-integration)
+  	 )
     :commands lsp)
 
   ;; optionally
