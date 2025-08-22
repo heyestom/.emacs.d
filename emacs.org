@@ -57,7 +57,7 @@ Some langages require extra setup...
   ;; (global-hide-mode-line-mode)
 
   ;; for osx 
-   (setq frame-resize-pixelwise t)
+  (setq frame-resize-pixelwise t)
 
   ;; (setq right-margin-width 0)
   ;; (setq left-margin-width 0)
@@ -73,6 +73,10 @@ Some langages require extra setup...
 
   ;; auto save buffers 
   (auto-save-visited-mode 1)
+
+  ;; auth secrets
+  (setq auth-sources (list (expand-file-name "~/.authinfo.gpg")))
+  (setq sql-password-wallet (list (expand-file-name "~/.authinfo.gpg")))
 
   ;; spit the auto backups into /tmp
   (setq backup-directory-alist '((".*" . "~/tmp")))
@@ -164,11 +168,6 @@ Dynamic theme with ewal + wallust
   (load-theme 'ewal-doom-one t)
 #+end_src    
 
-#+RESULTS:
-: t
-
-
-
 * Icons!
 
 #+begin_src emacs-lisp
@@ -198,17 +197,12 @@ Ideas :
 - Email inbox
 - Hacker news / Reddit / RSS feed lots of options 
 
-
-
-
 * PATH configuration
 Ensure emacs uses the shell path so we can access user bins
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
      :config (exec-path-from-shell-initialize))
 #+end_src
-
-
 
 * Vertico completion
 
@@ -234,7 +228,6 @@ Ensure emacs uses the shell path so we can access user bins
   (completion-category-overrides '((file (styles partial-completion)))))
 #+end_src
 
-#+RESULTS:
 
 #+begin_src emacs-lisp
 (use-package consult
@@ -384,11 +377,6 @@ Embark
   (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
-#+RESULTS:
-| consult-preview-at-point-mode |
-
-
-
 * Rich annotations with Marginalia
 Add a desecration / summary of the commands shown in the mini buffer.
 #+begin_src emacs-lisp
@@ -426,16 +414,13 @@ https://docs.projectile.mx/projectile/index.html
     :init
     (projectile-mode +1)
     :bind (:map projectile-mode-map
-		("C-c p" . projectile-command-map))
+  		("C-c p" . projectile-command-map))
+    :config
+    (which-key-mode +1)
     :init
     (setq projectile-project-search-path '("~/Projects/")))
 
-  (use-package counsel-projectile
-    :after projectile
-    :config (counsel-projectile-mode))
 #+end_src
-
-** TODO counsel keybindings not properly set up
 
 * Magit - git wrapper
 
@@ -443,8 +428,24 @@ Emacs does Git really well with Magit.
 
 #+begin_src emacs-lisp
   (use-package magit
-       :bind ("C-x g" . magit-status)
-       :commands (magit-status magit-get-current-branch))
+    :bind ("C-x g" . magit-status)
+    :commands (magit-status magit-get-current-branch))
+
+  (use-package forge :after magit)
+
+  (use-package pr-review
+    :after magit forgea
+    :init
+    ;; Shamefully stolen helper function from 
+    ;; https://magnus.therning.org/2025-01-19-reviewing-github-prs-in-emacs.html
+    (defun mes/pr-review-via-forge ()
+      (interactive)
+      (if-let* ((target (forge--browse-target))
+                (url (if (stringp target) target (forge-get-url target)))
+                (rev-url (pr-review-url-parse url)))
+          (pr-review url)
+        (user-error "No PR to review at point"))))
+Q
 #+end_src
 
 * flycheck - linting / syntax checkisng etc
@@ -474,7 +475,6 @@ Please fix my dyslexia computer!
   (use-package flyspell-correct-popup
     :after flyspell-correct)
 #+end_src
-
 
 * Tree sitter
 
@@ -516,14 +516,13 @@ This is straight form [[https://github.com/mickeynp/combobulate][combobulate]]
   	 (lsp-mode . lsp-diagnostics-mode)
   	 (clojure-mode . lsp)
   	 (terraform-mode . lsp)
+  	 (prog-mode . lsp)
   	 ((tsx-ts-mode typescript-ts-mode js-ts-mode) . lsp-deferred)
   	 ;; if you want which-key integration
-  	 (lsp-mode . lsp-enable-which-key-integration)
-  	 )
+  	 (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
 
   ;; optionally
-  (use-package lsp-ui :commands lsp-ui-mode)
   (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
   ;; optionally if you want to use debugger
@@ -533,7 +532,6 @@ This is straight form [[https://github.com/mickeynp/combobulate][combobulate]]
   ;; (lsp-install-server nil 'clojure-lsp)
 
 #+end_src
-
 
 * AI assistance
 
@@ -548,7 +546,6 @@ This is straight form [[https://github.com/mickeynp/combobulate][combobulate]]
 #   (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
 
 # #+end_src
-
 
 * Yasnippet
 [[https://joaotavora.github.io/yasnippet/][Yet another snippet extension]]
@@ -568,6 +565,7 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
                              
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters)
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
   (use-package smartparens)
   (use-package idle-highlight-mode) 
   (use-package flycheck-clojure)
@@ -592,7 +590,7 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
     :config
     (require 'flycheck-clj-kondo)
     :mode (("\\.clj\\'" . clojure-mode)
-	   ("\\.edn\\'" . clojure-mode))
+  	   ("\\.edn\\'" . clojure-mode))
     :init
     (add-hook 'clojure-mode-hook #'subword-mode)           
     (add-hook 'clojure-mode-hook #'smartparens-mode)       
@@ -613,11 +611,11 @@ YASnippet is a template system for Emacs. It allows you to type an abbreviation 
     :diminish subword-mode
     :config
     (setq nrepl-log-messages t                  
-	  cider-repl-use-clojure-font-lock t    
-	  cider-prompt-save-file-on-load 'always-save
-	  cider-font-lock-dynamically '(macro core function var)
-	  nrepl-hide-special-buffers t            
-	  cider-overlays-use-font-lock t)
+  	  cider-repl-use-clojure-font-lock t    
+  	  cider-prompt-save-file-on-load 'always-save
+  	  cider-font-lock-dynamically '(macro core function var)
+  	  nrepl-hide-special-buffers t            
+  	  cider-overlays-use-font-lock t)
     (flycheck-clojure-setup)
     (cider-repl-toggle-pretty-printing))
 #+end_src
