@@ -434,7 +434,7 @@ Emacs does Git really well with Magit.
   (use-package forge :after magit)
 
   (use-package pr-review
-    :after magit forgea
+    :after magit forge
     :init
     ;; Shamefully stolen helper function from 
     ;; https://magnus.therning.org/2025-01-19-reviewing-github-prs-in-emacs.html
@@ -445,7 +445,6 @@ Emacs does Git really well with Magit.
                 (rev-url (pr-review-url-parse url)))
           (pr-review url)
         (user-error "No PR to review at point"))))
-Q
 #+end_src
 
 * flycheck - linting / syntax checkisng etc
@@ -506,20 +505,23 @@ This is straight form [[https://github.com/mickeynp/combobulate][combobulate]]
 
 
 #+begin_src emacs-lisp
+
+  (use-package company)
+
   (use-package lsp-mode
     :init
     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
     (setq lsp-keymap-prefix "C-c l"
-  	gc-cons-threshold 100000000
-  	read-process-output-max (* 1024 1024))
+    	gc-cons-threshold 100000000
+    	read-process-output-max (* 1024 1024))
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-  	 (lsp-mode . lsp-diagnostics-mode)
-  	 (clojure-mode . lsp)
-  	 (terraform-mode . lsp)
-  	 (prog-mode . lsp)
-  	 ((tsx-ts-mode typescript-ts-mode js-ts-mode) . lsp-deferred)
-  	 ;; if you want which-key integration
-  	 (lsp-mode . lsp-enable-which-key-integration))
+    	 (lsp-mode . lsp-diagnostics-mode)
+    	 (clojure-mode . lsp)
+    	 (terraform-mode . lsp)
+    	 (prog-mode . lsp)
+    	 ((tsx-ts-mode typescript-ts-mode js-ts-mode) . lsp-deferred)
+    	 ;; if you want which-key integration
+    	 (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
 
   ;; optionally
