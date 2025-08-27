@@ -744,11 +744,11 @@ Don't use the real image width for inline images - images are rendered WAAAAAY t
 #+begin_src emacs-lisp
 
   (use-package visual-fill-column
-    :hook (org-mode .  (lambda ()
-			 (setq visual-fill-column-width 100
-			       visual-fill-column-center-text t)
-			 (visual-fill-column-mode 1)
-			 )))
+  :after org
+  :hook (org-mode . visual-fill-column-mode)
+  :config
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t))
 
   #+end_src
 
