@@ -74,6 +74,12 @@ Some langages require extra setup...
   ;; auto save buffers 
   (auto-save-visited-mode 1)
 
+  ;; previous window 
+  (global-set-key
+   (kbd "C-x p")
+   (lambda () (interactive) (other-window -1)))
+
+
   ;; auth secrets
   (setq auth-sources (list (expand-file-name "~/.authinfo.gpg")))
   (setq sql-password-wallet (list (expand-file-name "~/.authinfo.gpg")))
